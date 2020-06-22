@@ -1,0 +1,49 @@
+
+
+\begin{table}
+\caption{Feature-set categorization}
+
+
+\centering
+\label{tab:feature-sets}
+
+\resizebox{1\columnwidth}{!}{
+\begin{tabular}{|c|c|c|}
+    \hline
+ & Basic & Full \\
+    \hline
+    \multirow{3}{*}{Black-box} & Input Data (BBI) &  BBI $\cup$ BBT $\cup$ BBT \\ 
+    &Task Parameters (BBT) &  Composite Features (BBC) \\
+     &Execution Environment (BBE)  &   \\
+     \hline
+    \multirow{3}{*}{Gray-box} & Input Data (GBI) & GBI $\cup$ GBT $\cup$ GBT \\ 
+    &Task Parameters (GBT) &  Composite Features (GBC) \\
+     &Execution Environment (GBE)  &   \\
+    \hline
+\end{tabular}
+}
+
+\vspace{0.2cm}
+
+\centering
+\caption{Example of features in the four categories}
+\label{tab:feature-sets-instance}
+
+\resizebox{1\columnwidth}{!}{
+\begin{tabular}{|c|c|c|}
+    \hline
+ & Basic & Full \\
+    \hline
+    \multirow{3}{*}{Black-box} & BBI = input-size, num-files &  BBI $\cup$ BBT $\cup$ BBT \\ 
+    &BBT = arg1, arg2 $\cdots$ &  BBC = input-size/cores, log(cores) \\
+     &BBE = memory, cores  &   \\
+     \hline
+    \multirow{3}{*}{Gray-box} & GBI = BBI + interval-length & GBI $\cup$ GBT $\cup$ GBT \\ 
+    &GBT  min-distance & GBC = BBC + input-size/num-tasks \\
+     &GBE = BBE + num-tasks  &   \\
+    \hline
+\end{tabular}
+}
+
+
+\end{table}

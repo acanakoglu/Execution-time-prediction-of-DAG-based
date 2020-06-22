@@ -1,0 +1,111 @@
+\begin{table}
+\centering
+\caption{ScQL operators / tasks}
+\label{table:scql}
+\begin{centering}
+\begin{tabular}{|c|c|}
+\hline
+\multicolumn{1}{|c|}{GMQL operation}&  \multicolumn{1}{|c|}{Table-level operations} \\ \hline\hline
+SELECT & SelectMD, PurgeMd, SelectFD \\\hline
+SEMIJOIN & SemiJoinMD, PurgeFD \\\hline
+PROJECT & ProjecMD, ProjectFD \\\hline
+EXTEND & ExtMD, BuildFD \\\hline
+ORDER & OrderMD, OrderFD \\\hline
+GROUP & GroupMD, AggrMD, AggrFD \\\hline
+MERGE & MergeMD, MergeFD \\\hline
+UNION & UnionMD, UnionFD \\\hline
+JOIN & MatchMD, JoinMD, JoinFD \\\hline
+DIFFERENCE & MatchMD, DiffFD \\\hline
+\end{tabular}
+\end{centering}
+\end{table}
+
+
+\centering
+\caption{SciQL-MAP - Single Machine (SM)}
+\label{tab:map-sm}
+
+\begin{tabular}{|c||@{}c@{}||@{}c@{}|}
+\hline
+           &  \begin{tabular}{p{0.45cm}|p{0.45cm}|p{0.45cm}|p{0.45cm}}
+
+    \multicolumn{4}{c}{ \textbf{Basic} } \\ 
+    \hline
+     DT & LR & NN & RF \\
+
+    \end{tabular}     &  \begin{tabular}{p{0.45cm}|p{0.45cm}|p{0.45cm}|p{0.45cm}}
+
+    \multicolumn{4}{c}{ \textbf{Full} } \\ 
+    \hline
+     DT & LR & NN & RF \\
+
+    \end{tabular} 
+
+    \\ \hline
+
+    \textbf{BB}  & 
+    \begin{tabular}{@{}p{0.45cm}|p{0.45cm}|p{0.45cm}|p{0.45cm}@{}}
+    0.22   &   0.39   &  -   & \textbf{0.21}
+    \end{tabular} &
+    \begin{tabular}{@{}p{0.45cm}|p{0.45cm}|p{0.45cm}|p{0.45cm}@{}}
+    0.22   &   0.39   &   -   & \textbf{0.20}
+    \end{tabular}
+    
+   \\ \hline %\cline{1-1}
+    
+    \textbf{GB} & 
+
+    \begin{tabular}{p{0.45cm}|p{0.45cm}|p{0.45cm}|p{0.45cm}}
+    0.22   &   0.39   &   -   & \textbf{0.21}
+    \end{tabular} &
+     \begin{tabular}{p{0.45cm}|p{0.45cm}|p{0.45cm}|p{0.45cm}}
+     0.16   &   0.24   &   .   & \textbf{0.15}
+    \end{tabular} 
+    
+    \\ \hline
+
+\end{tabular}
+\centering
+\caption{SciQL-JOIN - Single Machine (SM)}
+\label{tab:join-sm}
+
+\begin{tabular}{|c||@{}c@{}||@{}c@{}|}
+\hline
+           &  \begin{tabular}{p{0.45cm}|p{0.45cm}|p{0.45cm}|p{0.45cm}}
+
+    \multicolumn{4}{c}{ \textbf{Basic} } \\ 
+    \hline
+     DT & LR & NN & RF \\
+
+    \end{tabular}     &  \begin{tabular}{p{0.45cm}|p{0.45cm}|p{0.45cm}|p{0.45cm}}
+
+    \multicolumn{4}{c}{ \textbf{Full} } \\ 
+    \hline
+     DT & LR & NN & RF \\
+
+    \end{tabular} 
+
+    \\ \hline
+
+    \textbf{BB}  & 
+    \begin{tabular}{@{}p{0.45cm}|p{0.45cm}|p{0.45cm}|p{0.45cm}@{}}
+    -   &   -   &   -   & -
+    \end{tabular} &
+    \begin{tabular}{@{}p{0.45cm}|p{0.45cm}|p{0.45cm}|p{0.45cm}@{}}
+    -   &   -   &   -   & -
+    \end{tabular}
+    
+   \\ \hline %\cline{1-1}
+    
+    \textbf{GB} & 
+
+    \begin{tabular}{p{0.45cm}|p{0.45cm}|p{0.45cm}|p{0.45cm}}
+    -   &   -   &   -   & -
+    \end{tabular} &
+     \begin{tabular}{p{0.45cm}|p{0.45cm}|p{0.45cm}|p{0.45cm}}
+    - &   -   &   -   & -
+    \end{tabular} 
+    
+    \\ \hline
+
+\end{tabular}

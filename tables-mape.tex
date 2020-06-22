@@ -1,0 +1,100 @@
+% Please add the following required packages to your document preamble:
+% \usepackage{booktabs}
+% \usepackage{multirow}
+\begin{table}[t]
+
+\centering
+\caption{SciQL-MAP - AWS}
+\label{tab:map-aws}
+
+\begin{tabular}{|c||@{}c@{}||@{}c@{}|}
+\hline
+           &  \begin{tabular}{p{0.45cm}|p{0.45cm}|p{0.45cm}|p{0.45cm}}
+
+    \multicolumn{4}{c}{ \textbf{Basic} } \\ 
+    \hline
+     DT & LR & NN & RF \\
+
+    \end{tabular}     &  \begin{tabular}{p{0.45cm}|p{0.45cm}|p{0.45cm}|p{0.45cm}}
+
+    \multicolumn{4}{c}{ \textbf{Full} } \\ 
+    \hline
+     DT & LR & NN & RF \\
+
+    \end{tabular} 
+
+    \\ \hline
+    
+    \textbf{BB}  & 
+    \begin{tabular}{@{}p{0.45cm}|p{0.45cm}|p{0.45cm}|p{0.45cm}@{}}
+    0.16   &   0.34   &   -   & \textbf{0.12}
+    \end{tabular} &
+    \begin{tabular}{@{}p{0.45cm}|p{0.45cm}|p{0.45cm}|p{0.45cm}@{}}
+    0.16   &   0.33   &  -   & \textbf{0.12}
+    \end{tabular}
+    
+   \\ \hline %\cline{1-1}
+    
+    \textbf{GB} & 
+
+    \begin{tabular}{p{0.45cm}|p{0.45cm}|p{0.45cm}|p{0.45cm}}
+    0.16   &   0.34   &   -   & \textbf{0.12}
+    \end{tabular} &
+     \begin{tabular}{p{0.45cm}|p{0.45cm}|p{0.45cm}|p{0.45cm}}
+    0.12  &   0.14   &  -    & \textbf{0.09}
+    \end{tabular} 
+    
+    \\ \hline
+
+\end{tabular}
+
+\vspace{0.2cm}
+
+
+\centering
+\caption{SciQL-JOIN - AWS}
+\label{tab:join-aws}
+
+\begin{tabular}{|c||@{}c@{}||@{}c@{}|}
+\hline
+           &  \begin{tabular}{p{0.45cm}|p{0.45cm}|p{0.45cm}|p{0.45cm}}
+
+    \multicolumn{4}{c}{ \textbf{Basic} } \\ 
+    \hline
+     DT & LR & NN & RF \\
+
+    \end{tabular}     &  \begin{tabular}{p{0.45cm}|p{0.45cm}|p{0.45cm}|p{0.45cm}}
+
+    \multicolumn{4}{c}{ \textbf{Full} } \\ 
+    \hline
+     DT & LR & NN & RF \\
+
+    \end{tabular} 
+
+    \\ \hline
+
+    \textbf{BB}  & 
+    \begin{tabular}{@{}p{0.45cm}|p{0.45cm}|p{0.45cm}|p{0.45cm}@{}}
+    0.20   &   0.32   &   -   & \textbf{0.17}
+    \end{tabular} &
+    \begin{tabular}{@{}p{0.45cm}|p{0.45cm}|p{0.45cm}|p{0.45cm}@{}}
+    0.19   &   0.26   &   -   & \textbf{0.15}
+    \end{tabular}
+    
+   \\ \hline %\cline{1-1}
+    
+    \textbf{GB} & 
+
+    \begin{tabular}{p{0.45cm}|p{0.45cm}|p{0.45cm}|p{0.45cm}}
+    0.19   &   0.31   &   -   & \textbf{0.14}
+    \end{tabular} &
+     \begin{tabular}{p{0.45cm}|p{0.45cm}|p{0.45cm}|p{0.45cm}}
+    0.16  &   0.22   &   -   & \textbf{0.13}
+    \end{tabular} 
+    
+    \\ \hline
+
+\end{tabular}
+
+
+\end{table}

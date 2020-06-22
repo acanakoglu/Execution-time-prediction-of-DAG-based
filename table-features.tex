@@ -1,0 +1,61 @@
+% Please add the following required packages to your document preamble:
+% \usepackage{booktabs}
+% \usepackage{multirow}
+\begin{table}[t]
+
+\centering
+\caption{SciQL-MAP Relevant Features (RF)}
+\label{tab:relevant-features-map}
+
+\begin{tabular}{|c||c||c|}
+\hline
+        & \textbf{Basic} &  \textbf{Full)} 
+
+
+    \\ \hline
+    
+    \textbf{BB} 
+    & \makecell{ref-total-size (0.5) \\ exp-num-files (0.3) \\ cores (0.2) \\ ...} 
+    & \makecell{ ref-total-size (0.5) \\ exp-num-files (0.3) \\ \textbf{input-total-size/cores} (0.3) \\ ...} 
+   
+    
+   \\ \hline %\cline{1-1}
+    
+    \textbf{GB} 
+    & \makecell{ref-total-size (0.5) \\ exp-num-files (0.3) \\ cores (0.2) \\ ... \\ \textbf{bin-size} (<0.1)} 
+    & \makecell{ \textbf{binned-result-size / cores} (0.8) \\ \textbf{binned-result-size}(0.1) \\ ...} 
+    
+    \\ \hline
+
+\end{tabular}
+
+\vspace{0.2cm}
+
+\centering
+\caption{SciQL-JOIN Relevant Features (RF)}
+\label{tab:relevant-features-join}
+
+\begin{tabular}{|c||c||c|}
+\hline
+        & \textbf{Basic} &  \textbf{Full} 
+
+
+    \\ \hline
+    
+    \textbf{BB} 
+    & \makecell{input-total-size (0.5) \\ exp-num-files (0.3) \\  ref-num-entries (0.1) \\ cores (0.1) \\ ... \\ distance (<0.1) } 
+    & \makecell{ input-total-size (0.3) \\ \textbf{input-total-size/cores} (0.3) \\  exp-num-files (0.3) \\ ref-num-entries (0.1) \\ ...} 
+   
+    
+   \\ \hline %\cline{1-1}
+    
+    \textbf{GB} 
+    & \makecell{input-total-size (0.4) \\ exp-num-files (0.3) \\ ref-num-entries (0.1) \\ cores (0.1) \\ ... \\ \textbf{bin-size} (<0.1)} 
+    & \makecell{ \textbf{(binned-total-size / cores)$^2$} (0.5) \\  exp-num-files (0.1) \\ ...} 
+    
+    \\ \hline
+
+\end{tabular}
+
+
+\end{table}

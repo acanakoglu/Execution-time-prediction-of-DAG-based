@@ -1,0 +1,85 @@
+\begin{table}[t]
+\centering
+\caption{Hyper-parameters}\label{tab:hyper-parameters}
+
+\begin{tabular}{|@{}c@{}|}
+\hline
+    \begin{tabular}{c | c}
+        \multicolumn{2}{c}{ 
+        \textbf{Linear Regression (LR)}
+        } 
+    \end{tabular}   
+    
+     \\ \hline
+     
+    \begin{tabular}{c|c}
+        \textbf{Hyper-parameter} & \textbf{Values} \\ \hline
+        Penalty $\alpha$ & 0.01\\
+        Fit-intercept & True
+    \end{tabular}
+
+   
+    \\ \hline
+    
+\end{tabular}
+
+\medskip
+\centering
+
+\iffalse
+\begin{tabular}{|@{}c@{}|}
+\hline
+    \begin{tabular}{c | c}
+        \multicolumn{2}{c}{ 
+        \textbf{Neural Network (NN)}
+        } 
+    \end{tabular}   
+    
+     \\ \hline
+     
+    \begin{tabular}{c|c}
+        \textbf{Hyper-parameter} & \textbf{Values} \\ \hline
+        \# Layers $\alpha$ & 1, 2, 3 \\
+        \# Perceptrons/Layer & True, False \\
+        Activation Functions & sigmoid, ReLU, tanh \\
+        l2 Penalty & 0.0001, 0.001, 0.01, 0.05, 0.1 \\
+        Learning Rate & 0.001, 0.01, 0.1 \\
+        $\beta_1$ & 0.7, 0.8, 0.9 \\
+        \# Minibatches & 1 \\
+        Optimizer & Adam, SGD
+    \end{tabular}
+
+    \\ \hline
+    
+\end{tabular}
+
+\medskip
+\fi 
+
+\centering
+
+\begin{tabular}{|@{}c@{}|}
+\hline
+    \begin{tabular}{c | c | c}
+        \multicolumn{3}{c}{ 
+        \textbf{Decision Tree (DT) \& Random Forest (RF)}
+        } 
+    \end{tabular}   
+    
+     \\ \hline
+     
+    \begin{tabular}{c|c|c}
+        \textbf{Hyper-parameter} & \textbf{DT} & \textbf{RF}  \\ \hline
+        Max Depth &  5 & 8 \\
+        Max Features & auto & auto \\
+        Min samples to split & 4 & 2 \\
+        Min samples per leaf & 1 & 2 \\
+        Criterion & MSE & MAE \\
+        \# Estimators & NA & 300
+    \end{tabular}
+
+    \\ \hline
+    
+\end{tabular}
+
+\end{table}

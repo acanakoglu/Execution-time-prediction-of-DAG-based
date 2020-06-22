@@ -1,0 +1,24 @@
+\begin{algorithm}[t]
+\begin{algorithmic}
+\Procedure{profileEstimation}{$v_i$}
+  \State\textit{Input:} $v_i \in V$
+  \State\textit{Output:} the estimated profile $P_{i}$.\\
+
+  
+	\If{ $v_i$ is an entry task}
+        	\State $P_{i}$ = load offline-computed profile
+    \Else
+           \State   $\Pi^{in}_i  = \emptyset$
+           	\For {each $v_k \in pred(v_i)$ } 
+           	    \State $P_{k} = ProfileEstimation(v_k)$
+           	    \State  $\Pi^{in}_i   = \Pi^{in}_i  \cup P_{k}$
+           	\EndFor
+           	
+           	\State $P_{i} = \emptyset$
+           	\For{each feature $p$ of the profile schema}%$i \in \{1,\cdots,|P|\}$
+           	    \State $P_{i}$ = $P_{i} \cup  predict(i, p, \Pi^{in}_i, R_i)$
+            \EndFor
+    \EndIf
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
