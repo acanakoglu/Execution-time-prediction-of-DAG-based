@@ -33,6 +33,12 @@
 \usepackage{multirow}
 \usepackage{subfig}
 \usepackage{makecell}
+\usepackage{balance}
+\usepackage{enumitem}
+
+\setlist{leftmargin=2.6mm}
+
+
 
 % The following packages can be found on http:\\www.ctan.org
 %\usepackage{graphics} % for pdf, bitmapped graphics files
@@ -43,7 +49,7 @@
 %\usepackage{amssymb}  % assumes amsmath package installed
 
 \title{\LARGE \bf
-Performance Prediction for Data-driven Scientific Workflows on Spark. 
+Performance Prediction for Data-driven Workflows on Apache Spark 
 }
 %Performance prediction for DAG-based Spark Applications mixing Machine Learning and Analytical Modeling. 
 
@@ -62,7 +68,7 @@ Performance Prediction for Data-driven Scientific Workflows on Spark.
 %         {\tt\small pmisra@cs.wright.edu}}
 %}
 
-\author{Andrea Gulino, Arif Canakoglu, Stefano Ceri and Danilo Ardagna}
+\author{Andrea Gulino, Arif Canakoglu, Stefano Ceri and Danilo Ardagna\\Politecnico di Milano, \textit{name.surname@polimi.it}.}
 
 
 
@@ -79,36 +85,37 @@ Performance Prediction for Data-driven Scientific Workflows on Spark.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{abstract}
 
-Spark is an in-memory cloud computing platform for implementing distributed applications of various types.
-Predicting the execution time of Spark applications is an important but challenging problem that has been tackled in the past few years by several studies; most of them achieving good prediction accuracy on simple applications (e.g. known ML algorithms, Spark-SQL-based applications).
-In this work, we consider complex applications in which the execution and data flow can be modeled by Directly Acyclic Graphs (DAGs); composed of an arbitrary combination of tasks, each applying a set of Spark operations to their input data.
-We propose an hybrid approach,combining  learning and analytical models are combining to to predict the application execution time with good accuracy. 
+Spark is an in-memory framework for implementing distributed applications of various types.
+Predicting the execution time of Spark applications is an important but challenging problem that has been tackled in the past few years by several studies; most of them achieving good prediction accuracy on simple applications (e.g. known ML algorithms or SQL-based applications).
+In this work, we consider complex data-driven workflow applications, in which the execution and data flow can be modeled by Directly Acyclic Graphs (DAGs).  Workflows can be made of an arbitrary combination of known tasks, each applying a set of Spark operations to their input data.
+By adopting a hybrid approach, combining analytical and machine learning (ML) models, trained on small DAGs, we can predict, with good accuracy, the execution time of unseen workflows of higher complexity and size. \\
+We validate our approach through an extensive experimentation on  real-world complex applications, comparing different ML models and choices of feature sets.
 
 %Abstract— Spark is an in-memory cloud computing platformfor implementing distributed applications of various types, suchas  data-driven  scientific  workflows.  Predicting  the  executiontime  of  workflows  is  an  important  but  challenging  problemthat has been tackled in the past few years by several studies.However, those studies either focus on the single task, validatingtheir  models  on  simple  applications  (e.g.  static  applications,known ML algorithms, Spark-SQL-based applications), or justfocus  on  the  makespan  estimation  and  scheduling  problem,without  showing  the  problems  that  arise  when  combining  thetwo things (e.g. XXX when intermediate results will be providedXXX  ).  In  this  paper,  we  tackle  the  problem  of  modelingand  predicting  the  performance  of  DAG-based  applicationsimplemented   on   Spark,   in   which   Directly   Acyclic   Graphs(DAGs)  describe  how  data  flows  through  several  tasks,  eachtransforming the input data through a set of Spark operations.We model the workflow execution time by combining predictionmodels   built   for   each   task   in   the   DAG,   mixing   ML   andanalytical   approaches   in   a   complementary   way.   Predictionmodels  take  into  account  different  features,  such  as  the  inputdata  profiles,  execution  environment  (CPUs  and  memory)  andtask-specific parameters. We apply our methodology to ScQL, acomplex system mapping SQL-like queries to DAG-based SparkApplications  and  we  measure  the  accuracy  of  our  predictionsthrough an extensive experimentation on both artificial and realdatasets.
 
 \end{abstract}
 
 \begin{keywords}
-Performance prediciton, workflow applicatons, Spark, Machine Learning
+performance prediction, workflow applications, Spark, machine learning
+% analytical models. DANILO:  I dropped this, MASCOTS people can possibly think to a Queueing Network and their expectation unattended
 \end{keywords}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{INTRODUCTION}
-In the past decade we have witnessed an increasing spread of big data applications in several domains, such as business analytics \cite{sun2018big}, social media analysis \cite{ghani2019social}, healthcare \cite{kulkarni2020big} and natural language processing \cite{Hirschberg261}.
-Big data applications are characterized by data intensive and computational intensive tasks which are typically implemented on top of highly parallel algorithms and distributed computing frameworks. Among such frameworks, Apache Spark has emerged as the de facto platform for analytical processing, with broad adoption in both industry and academia, due to its simplicity, fault tolerance and scalability \cite{Hirschberg261}.\\
+In the past decade, we have witnessed an increasing spread of big data applications in several domains, such as business analytics \cite{sun2018big}, social media analysis \cite{ghani2019social}, healthcare \cite{kulkarni2020big}, and natural language processing \cite{Hirschberg261}.
+Big data applications are characterized by data-intensive and computationally intensive tasks which are typically implemented on top of  parallel algorithms and distributed computing frameworks. Among such frameworks, Apache Spark has emerged as the de-facto platform for analytical processing, with broad adoption in both industry and academia, due to its simplicity, fault tolerance, and scalability \cite{Hirschberg261}.\\
 At the same time, users and enterprises have started moving their big data applications from  traditional local server architectures to cloud computing platforms (e.g. Amazon EC2, Google Cloud, Microsoft Azure\footnote{https://aws.amazon.com, https://cloud.google.com and https://azure. microsoft .com }), which provide configurable environments suiting the needs of big data applications.
-These systems usually offer services at the Platform level  where big data  frameworks are already installed and allow their users to choose among several configurations, e.g. specifying the number of instances in a cluster and their characteristics (CPUs, memory, \ldots).
-Each choice might drastically affect  the application execution time and the monetary cost of using the cloud computing service. 
-Resources allocated to each application should be proportional to its workloads, not only to avoid resources wasting but also considering that allocating more resources than necessary might negatively impact on the execution time \cite{li2015sparkbench}.
+These systems usually offer services at the Platform level, where big data  frameworks are already installed, and allow their users to choose among several configurations, e.g. specifying the number of instances in a cluster and their characteristics (CPUs, memory, \ldots).
+Each choice might drastically affect  the application execution time and the monetary cost of using the cloud computing service.\\
+%Resources allocated to each application should be proportional to its workload, not only to avoid resource wasting but also considering that allocating more resources than necessary might negatively impact on the execution time \cite{li2015sparkbench}.
 %\textbf{XXX this is not usual, provide a reference to support this statement XXX: Overcommitting CPU resources leads to CPU contention and adversely impact the execution time, cited paper. }
 Predicting the performance of an application is therefore useful for a proper allocation of the available resources, aimed at reducing resource wasting and extra costs.
 
-The problem of performance prediction for cloud big data applications has been tackled in several studies. Some  studies rely on traditional techniques, such as analytical models \cite{lundstrom2004, ardagna1, vianna2013} and simulation \cite{Verma2011}.   More recently, machine learning (ML) has been used to predict the performance of large systems \cite{ernest, pan2017hemingway, alipourfard2017cherrypick, ARDAGNA2019}.
+The problem of performance prediction for big data applications on the cloud has been tackled in several studies. Some  of them rely on traditional techniques, such as analytical models \cite{lundstrom2004, ardagna1, vianna2013} and simulation \cite{Verma2011}.   More recently, machine learning (ML) has been used to predict the performance of large systems \cite{ernest, pan2017hemingway, alipourfard2017cherrypick, ARDAGNA2019}.
 The idea is to collect training data offline and use ML models, such as regression, to predict the runtime performance of future executions.
-Those studies mainly differ for the chosen set of features (\textit{black-box} vs \textit{gray-box} approaches %\textbf{XXX cite Maros XXX: done after this sentence}
-), i.e. capturing more or less details of the system,  and for the applied ML technique (simple regression vs more complex ML models). In \cite{ARDAGNA2019} authors show how black-box models (specifically Ernest) fail when applications exhibit irregular patterns and/or when extrapolating on bigger data set sizes.
-Despite achieving good results in terms of accuracy, all those studies are performed on simple monolithic applications (e,g. static programs, known ML algorithms), which complexity is far from modern data analytics pipelines.
-Indeed, nowadays, scientific jobs are rather represented as workflow applications that consist of many complex tasks, with logical or data dependencies, that can be implemented on top of several parallel frameworks. \cite{atkinson2017scientific, warr2012scientific, lordan2014servicess} 
+Those studies mainly differ for the chosen set of features (\textit{black-box} vs. \textit{gray-box} approaches), i.e. capturing more or fewer details of the system,  and for the applied ML technique (simple regression vs. more complex ML techniques). In \cite{ARDAGNA2019} authors show how black-box models (specifically Ernest, an approach proposed by Spark inventors \cite{ernest}) fail when applications exhibit irregular patterns and/or when extrapolating on bigger data set sizes.
+Despite achieving good results in terms of accuracy, those studies are performed on simple monolithic applications (e.g. static programs, known ML algorithms), which complexity is far from modern data analytics pipelines.
+Indeed, nowadays, scientific jobs are rather represented as workflow applications that consist of many complex tasks, with logical or data dependencies, that can be implemented on top of several parallel frameworks \cite{atkinson2017scientific, warr2012scientific, lordan2014servicess}. 
 %\textbf{XXX these are old too and I cannot be of help here but I suggest to look at COMPSs papers by Barcelona Computing Center and XXX: we added COMPSs and another paper about scientific workflows}.
 %https://books.google.it/books?id=xWoqBAAAQBAJ&lpg=PR3&hl=it&pg=PR3#v=onepage&q&f=false
 
@@ -118,26 +125,34 @@ Indeed, nowadays, scientific jobs are rather represented as workflow application
 
 %In the last case, the dependencies of each task (incoming edges) represent its input RDDs. This avoids materializing the intermediate results, resulting in more efficient executions.
 
-A workflow application is  represented by a Directed Acyclic Graph (DAG), i.e. a directed graph with no cycles, in which vertices and their connecting edges are used to represent, respectively,  tasks and their dependencies. A vertex (task) cannot be executed before all its parent tasks finish their execution and transfer their output data to their child tasks.
-In a DAG we can distinguish among \textit{entry tasks}, corresponding to reading the input data of the workflow, and  \textit{exit tasks}, corresponding to the storage/visualization of its results. \color{blue}In this paper we focused on DAGs having a single exit task. \color{black}
-Note that, differently from monolithic applications,  the input to each intermediate task of the DAG cannot be known a-priori.
+A workflow application can be  represented by a Directed Acyclic Graph (DAG), i.e. a directed graph with no cycles, in which vertices and their connecting edges are used to represent, respectively,  application tasks and their dependencies. Each task cannot be executed until all its parent tasks have completed their execution and moved their results to their child tasks. Specifically, we target workflow applications implemented on Spark, i.e. workflows in which each task of the workflow applies a set of Spark operations to the task inputs. Moreover, a workflow can be potentially implemented by multiple Spark applications.
 
-We argue that a trivial performance estimation model considering workflows as single monolithic applications, with known inputs, would not be able to properly capture their internal complexity, resulting in poor accuracy.
-Moreover, workflows can be dynamically generated as a combination of a set of pre-defined tasks. In that case, a ML model should be trained for each feasible combination of pre-defined tasks, which, in practice, would be unfeasible and not scalable.
 
-In this work we propose a hybrid model for estimating the execution time of workflow applications based on Spark, mixing machine learning (ML) and analytical models %\textbf{XXX I would define your approach  \textit{hybrid} as based on ML and analytical models, and the work would look more original than the number of ML based papers that are popping up today XXX: done}. 
-Compared to previous works:
-\begin{itemize}
-    \item  We deal with complex and dynamic configurable workflows, rather than simple and monolithic applications, which are the typical benchmarks of previous works.
-    \item We address both the problem of estimating the individual task execution time and combining sub-task estimation to predict the overall workflow execution time (make-span), while other works in the field typically address only one of the two problems.
-    \item We tackle the problem of estimating the profile of intermediate data, which is necessary to estimate the execution time of intermediate tasks, and consequently the overall execution time estimation.
-    \item XXX-- once we do extensive training on simple query - we are able to validate on totally different queries obtaining acceptable error ---XXX it means also small spark dags vs big, unseen dags
-\end{itemize}
+%todo: be sure you say that there is a single exit task
+A simple way of predicting the execution time of a workflow  could consider the workflow as a monolithic application with known inputs. In this case, a ML model should be trained for each feasible workflow, i.e. for each possible combination of tasks that could appear in the workflow. Besides being a solution that does not scale, the complexity of large workflows could be hardly captured by machine learning. 
 
-The general idea is to use ML to build the performance model of each task that might compose the workflow and then combining those estimates to predict the workflow make-span. Intermediate data profiles are estimated either analytically or building ML models. Analytical models can be built whenever the semantics of the application is known, e.g. the output size of a task can be determined a-priori as a function of its inputs. 
+% impariamo dai singoli task, svantaggio di non conoscere l'input dei task intermedi
+
+The solution proposed in this paper, instead, builds a separate ML model for each task allowed in a workflow application. The workflow execution time is eventually estimated as a combination of the individual tasks execution time predictions. This type of solution allows training ML models on minimal workflows and uses them to predict the performance of \textit{unseen} workflows of arbitrary complexity.
+Moreover, since the input data of intermediate tasks is not known offline, we estimate their characteristics (profiles) by mixing ML and analytical models.
+
+
+The overall solution is a hybrid approach to estimate the execution time of arbitrary complex workflow applications based on Spark. To the best of our knowledge, no previous work focused on performance prediction for Spark applications presenting this level of complexity and no similar approaches, explicitly tackling the problem of intermediate result estimation, were used for workflow performance prediction.
+
+ %\textbf{XXX I would define your approach  \textit{hybrid} as based on ML and analytical models, and the work would look more original than the number of ML based papers that are popping up today XXX: done}. 
+%In this work:
+%\begin{itemize}
+%    \item  we deal with complex and dynamic configurable workflows, rather than simple and monolithic applications, which are typical benchmarks in previous works on performance prediction for Spark
+%    \item we propose a \textit{three-phase} approach for workflow performance prediction: intermediate profile estimation; individual tasks execution times prediction; workflow execution time prediction.
+%\item We tackle the problem of estimating the intermediate data profile of a workflow
+% \item 
+%XXX-- once we do extensive training on simple query - we are able to validate on totally different queries obtaining acceptable error ---XXX it means also small spark dags vs big, unseen dags
+%\end{itemize}
 %\textbf{XXX say something more on the analytical model role XXX: we added one more line}.
 
-This paper is organized as follows: in section \ref{section:related_work}, we present the related work; in section \ref{section:dag_applications} we formally describe DAG-based workflow applications and the steps required for performance estimation; in \ref{section:task_modeling} we describe how to predict the performance of each task and discuss intermediate data profile estimation; in \ref{section:evaluation} we present our experimental evaluation.
+We validate our approach on a real-world complex system, comparing different ML techniques and choices of feature sets (black-box vs. gray-box). Eventually, an extrapolation analysis compares the robustness of different ML models against the variation of the input data size and of the cluster computational power.
+
+This paper is organized as follows: in Section \ref{section:dag_applications} we describe data-driven workflow applications and introduce the real-world system used in our experimental evaluation; in Section  \ref{section:performance_prediction} we describe our three-phase approach for performance prediction, validating the approach in section \ref{section:evaluation}. A discussion of  related literature proposals is reported in Section \ref{section:related_work}. Conclusions are finally drawn in Section \ref{section:conclusions}.
 
 %\textbf{XXX General comment:  Spark is used for big data analyses and ML today/data science.  When you mention scientific workflows the MASCOTS community can think, e.g., to molecules simulations and the like.  Here I would make more explicit the class of applications you consider, which are not classic scientific applications as above.  There is a mismatch otherwise also in the way you model the DAG which is data-oriented (e.g., to simulate molecules you don't need probably to characterize the data model (relational/semistructured, etc., Sect 3 XXX: DISCUSS} 
 
@@ -146,54 +161,59 @@ This paper is organized as follows: in section \ref{section:related_work}, we pr
 \label{section:dag_applications}
 
 
-A workflow application can be represented as a Directly Acyclyc Graph (DAG), i.e. a directed graph with no cycles. Each vertex in a DAG represents a task, while edges represent the data and control dependencies between tasks.  A task is executed only when all its input data have been computed.
+A data-driven workflow application can be represented as a Directly Acyclyc Graph (DAG), i.e. a directed graph with no cycles. Each vertex in this DAG represents a task, while edges represent the data and control dependencies between tasks.  A task is executed only when all its input data have been computed, i.e. when all parent tasks have completed their execution.
 %$G=(V,E,L)$
-Formally, we describe the DAG representing a workflow application as a tuple $G=(V,E)$, where $V$ is the set of vertices (tasks), $E$ the set of directed edges (dependencies) s.t. $E\subseteq V^2$.
+Formally, a DAG representing a workflow application can be described as a tuple $G=(V,E)$, where $V$ is the set of vertices (tasks), $E$ the set of directed edges (dependencies) s.t. $E\subseteq V^2$.
+We call \textit{entry task} (\textit{exit task}) a task with no incoming (outgoing) edges. For simplicity, we assume that workflows have a unique exit task.  While entry tasks represent the reading of the workflow input data, the exit task stores back its final result. We further assume that each task produces a single output, which can be the input to multiple child tasks (through multiple edges).
 %, and $L$ a labelling $L: E \to \mathbb{N}$, assigning each edge $e=(v,w)\in E$ a label, uniquely identifying the output data of task $v$.
-The aciclicity is given by assuming that the transitive closure $E^+$ of the relation $E$ is irreflexive; i.e. $(v, v) \not \in E ^+ ,\ \forall v \in V$. An edge  $e=(v,w)\in E$ is called \textit{outgoing edge} of vertex $v$ and \textit{incoming edge} of vertex $w$.
+%The aciclicity is given by assuming that the transitive closure $E^+$ of the relation $E$ is irreflexive; i.e. $(v, v) \not \in E ^+ ,\ \forall v \in V$. An edge  $e=(v,w)\in E$ is called \textit{outgoing edge} of vertex $v$ and \textit{incoming edge} of vertex $w$.
 
-Although we do not constrain the number of incoming and outgoing edges of a task,
-we assume that the output data generated by each task is unique.
 %, i.e.: 
 %$$\nexists \ e=(v,w), e'=(v,w') \in E \ | \ w\not=w' \wedge L(e)\not=L(e') $$
 %meaning that the output data of a task is unique but can be dispatched to multiple child tasks.
 
-In a given DAG, a vertex without incoming edges is called \textit{entry task}, while a vertex without outgoing edges is called \textit{exit task}. Usually, entry tasks represent the retrieval of the workflow input data, while the exit task represents the storage / visualization of the workflow results.
 
-Moreover we define the set of \textit{predecessors} of a task $v \in V$ as $pred(v) =\{ w | (w,v) \in E \} $ and the set of its \textit{successors} as $succ(v) =\{ w | (v,w) \in E \}$.
+
+%Moreover we define the set of \textit{predecessors} of a task $v \in V$ as $pred(v) =\{ w | (w,v) \in E \} $ and the set of its \textit{successors} as $succ(v) =\{ w | (v,w) \in E \}$.
 %\textbf{XXX In the introduction you discussed the possibility to have mutiple exit task: This open the problem to predict performance of a path in the DAG or the average execution time of the full DAGs according to the probability distributiosn of its execution path.  The simple approach is remove in the intro mutiple exit tasks and here state explicitely that we focus on single exit task, i.e. we have a single execution path in the DAG XXX: we assumed that our DAGs have only one exit task in the intro + previous paragraph.} 
-\begin{figure}
-  \centering
-  \includegraphics[width=0.48\textwidth]{sources/task.png}
-  \caption{Characterization of a generic task of the DAG ($v_3$). 
+%\begin{figure}
+%  \centering
+%  \includegraphics[width=0.48\textwidth]{sources/task.png}
+%  \caption{Characterization of a generic task of the DAG ($v_3$). 
   %According to our definition $P_{3\rightarrow4}=P_{3\rightarrow5}$
-  }
-\label{fig:operator}
-\end{figure}
+%  }
+%\label{fig:operator}
+%\end{figure}
 
 
-Our definition of workflow DAG is enriched with the following metadata:
+\noindent Moreover, we characterized each task defining:
 \begin{itemize}
     
     %\item \textit{Data Profile}:  $P_{i\rightarrow j} = \{p^{i\rightarrow j}_1, p^{i\rightarrow j}_2, \ldots,p^{i\rightarrow j}_{|P_{i\rightarrow j}|}\}$, associated to each edge $(i,j)\in E$, represents the profile, i.e. a set of features providing a quantitative description, of the output data generated by task $v_i$ and delivered to task $j$. We also define the set of input profiles  of a task $\Pi^{in}_i = \{ P_{j\rightarrow i} | (j,i) \in E\}$ and its dual  $\Pi^{out}_i = \{ P_{i\rightarrow j} | (i,k) \in E\}$, that will contain only a single profile ($|\Pi^{out}_i| \leq 1$), given that the output data of each task is assumed to be unique. The set of features in $P_{i\rightarrow j}$ follows the same schema for any $i$ and $j$.
-    \item \textit{Data Profile}:  $P_{i} = \{p^{i}_1, p^{i}_2, \ldots,p^{i}_{|P_{i}|}\}$, associated to each task $v_i\in V$, represents the profile, i.e. a set of features providing a quantitative description, of the output data generated by task $v_i$ and delivered to all its successors $succ(v_i)$. We also define the set of input profiles  of a task $\Pi_i^{in} = \{ P_{j} | v_j \in pred(v_i)\}$. For every task in the DAG, output profiles are described by the same set of features. 
+    \item \textit{Output Profile}: a set of features quantitatively describing its result.
+    %$P_{i} = \{p^{i}_1, p^{i}_2, \ldots,p^{i}_{|P_{i}|}\}$, associated to each task $v_i\in V$, represents the profile, i.e. a set of features providing a quantitative description, of the output data generated by task $v_i$ and delivered to all its successors $succ(v_i)$. We also define the set of input profiles  of a task $\Pi_i^{in} = \{ P_{j} | v_j \in pred(v_i)\}$. For every task in the DAG, output profiles are described by the same set of features. 
     %\textbf{XXX Not clear here what you mean, you consider the same set of features? XXX: sentence is changed. }
     
-    \item \textit{Task Parameters}: $R_{i} = \{r^i_1, r^i_2, \cdots, r^i_{|R_{i}|} \} $, associated to each task $i$, denotes the set of specific parameters for task $v_i$. Examples can be selectivity, filter option and so on ... not binning (see next point). The set of features in $R_i$ follows the same schema for any $i$.
-    \item  \textit{Environment Parameters}: ($E_{i} = \{e^i_1, e^i_2, \cdots, e^i_{|E_{i}|} \} $), associated to each task $v_i$, denotes the set of features describing the execution environment used to run task  $v_i$ (e.g. number of CPUs, memory, partitions). In this set we include all those parameters that do not affect the result of the task, but just its performance (e.g. binning). The set of features in $E_i$ follows the same schema for any $i$.
-    \item \textit{Execution Time}: ($t_i$), which applies to each task of the workflow. It corresponds to the time required for processing all the input data of task $v_i$  and to produce its (unique) output $L(v_i)$. As later discussed, this time depends on the input data, task and environment parameters. 
+    \item \textit{Task Arguments}: any input  parameter given to the task, in addition to the input data produced by its parent tasks. Examples can be strings, flags or other options that might change the behaviour of the task.
+    %$R_{i} = \{r^i_1, r^i_2, \cdots, r^i_{|R_{i}|} \} $, associated to each task $i$, denotes the set of specific parameters for task $v_i$. Examples can be selectivity, filter option and so on ... not binning (see next point). The set of features in $R_i$ follows the same schema for any $i$.
+    \item  \textit{Environment Parameters}: %($E_{i} = \{e^i_1, e^i_2, \cdots, e^i_{|E_{i}|} \} $), associated to each task $v_i$, denotes the
+    a set of features describing the execution environment in which the task will run. Examples are the number of cores and amount of memory of a cluster.
+    %task  $v_i$ (e.g. number of CPUs, memory, partitions). In this set we include all those parameters that do not affect the result of the task, but just its performance (e.g. binning). The set of features in $E_i$ follows the same schema for any $i$.
+    \item \textit{Execution Time}: 
+    %($t_i$), which applies to each task of the workflow. It corresponds to the 
+    time required for processing the input data and produce the task result. %(unique) output $L(v_i)$. As later discussed, this time depends on the input data, task and environment parameters. 
     %\item \textit{Transfer Time} ($\tau_{i\rightarrow j}$), associated to each edge $(i,j)\in E$, represents the time required for moving the output of a task to its successors. An example might be network transfer  data time.
 \end{itemize}
 
 
-\color{red}
-We should discuss what is a task in practice in a workflow based on Spark: e.g. a task encapsulates one or more Spark Jobs and the entire workflow is a single spark application, or each task could be a single Spark Application.
-\color{black}
+%\color{red}
+%We should discuss what is a task in practice in a workflow based on Spark: e.g. a task encapsulates one or more Spark Jobs and the entire workflow is a single spark application, or each task could be a single Spark Application.
+%\color{black}
 
-% andrea: should we say that there are vertices with no edge at all? 
-\color{blue}
-The modeling of the workflow as described above is independent of the input data types, which can be relational records, semi-structured documents or plain text items.
-\color{black}
+
+%\color{black}
+%The modeling of the workflow as described above is independent of the input data types, which can be relational records, semi-structured documents or plain text items.
+%\color{black}
 
 \subsection{Target Application}
 \label{subsec:scql}
@@ -204,45 +224,44 @@ The modeling of the workflow as described above is independent of the input data
 \label{fig:scql-dag}
 \end{figure}
 
-\textbf{XXX Extend the description here XXX; we will do it}
+\noindent 
+For our experimental evaluation, we chose a cloud-based system implementing a SQL-like language for interval data called ScQL \cite{ScQL}. A ScQL derivation is the GenoMetric Query Language (GMQL) \cite{gmql}, in which interval data is used to represent DNA regions.
 
-Query languages that can be mapped to a relation algebra can be represented as trees, i.e. DAGs / workflows.
-For our experimentation, we chose a cloud-based system implementing a SQL-like language for interval data called ScQL \cite{ScQL}. An derivation of ScQL is the GenoMetric Query Language (GMQL) \cite{gmql}, in which interval data represent DNA regions.
+Like for other query languages relying on relational algebra, a ScQL query can be easily mapped to a workflow, in which each task represents a query operator.
+A simplified version of a ScQL query is the following:
+\begin{verbatim}
+    DS1 = READ() dataset_1;
+    DS1 = READ() dataset_2;
+    RES = JOIN(dist<100) DS1 DS2; 
+    STORE RES;
+\end{verbatim}
+Once a query is submitted, the ScQL processing system translates the query into a ScQL-Workflow, similar to the one depicted on the left side of Fig. \ref{fig:scql-dag}.
+Each task of this workflow applies a set of Spark operations on input data to implement the semantics of the corresponding ScQL operator. In this specific example, the entire workflow corresponds to a single Spark application, which DAG structure is depicted on the right side of Fig. \ref{fig:scql-dag}.
 
-ScQL queries are mapped to DAG-based Spark Applications (e.g. Fig. \ref{fig:scql-dag}.
-%query is translated into a workflow in which each task implements a ScQL operator on Spark.
-
-Although ScQL includes several operators, for this experiment, we focus on the two most complex and peculiar operators: ScQL-Map and ScQL-Join, along
-%put the real names?
-with ScQL-Read and ScQL-Store, which are mandatory entry and exit tasks (for reading inputs and storing results).   \\
-
-\noindent\textbf{ScQL Data Model}\\
-An interval-dataset $D$ consists of several files. Each entry in a file represents an interval, by means of its start and stop values.\\
-
-\noindent\textbf{ScQL Map}\\
-This operator (task) takes two input datasets, namely a \textit{reference} and an \textit{experiment} dataset and computes, for each interval in the reference dataset, aggregates on the overlapping experiments intervals. \\
-
-\noindent\textbf{ScQL Join}\\
-This operator (task) takes two input datasets, namely a \textit{reference} and an \textit{experiment} dataset. It outputs, for each couple of reference-experiment files, the couples of overlapping reference-experiment intervals.  A \texttt{distance} parameter can be provided to match also experiment intervals which are at a given distance from a reference interval.  \\
-
-\noindent\textbf{Binning}\\
-A data-model-specific partitioning algorithm, called interval-binning, is used to process in parallel intervals. The \textit{bin-size} parameter determines the amount of intervals processed at each partition. Some intervals are replicated as a consequence of binning. ScQL binning is discussed in \cite{binning}.
+In the ScQL Data Model, an interval-dataset $D$ is made of several files (which in memory are called \textit{samples}). Each entry in a file represents an interval, by means of its start and stop values.\\
+Although ScQL includes several operators, in our experimental evaluation we will only mention two of its most complex and peculiar operators, namely ScQL-Map and ScQL-Join, that are here briefly described: 
+\begin{itemize}
+    \item \textbf{ScQL Map}: given two input datasets,  namely a \textit{reference} and an \textit{experiment} dataset, this operator computes, for each interval in the reference dataset, aggregates on the overlapping experiment intervals. 
+    \item \textbf{ScQL Join}: given two input datasets, namely a \textit{reference} and an \textit{experiment} dataset, this operator computes, for each couple of reference-experiment files, the couples of overlapping reference-experiment intervals.  A \texttt{distance} parameter (dist) can be provided to match also experiment intervals which are at a maximum distance from a reference interval. 
+\end{itemize}
+Lastly, we mention a partitioning technique called \textit{interval-binning} \cite{binning}. The \textit{bin-size} parameter determines the amount of intervals that end up in the same partition. Depending on this parameter, some intervals of the initial dataset might be replicated in several partitions.
 
 %We don't consider metadata computation, that is performed in a short period before query execution and just filters the initial inputs. Therefore we deal only with an equivalent workflow DAG made of only operations which are applied to observations.
 
-\section{Performance Prediction}
-\label{subsec:pipeline}
-The workflow execution time is estimated offline, i.e. before the workflow execution, starting from:
-\begin{itemize}
-    \item a Workflow \textbf{DAG}: as previously described, in which, for each task $v_i$, the sets $R_i$ (task parameters) and $E_i$ (environment parameters) are already set.
-    \item all \textbf{input profiles}: data profiles of the workflow input datasets, i.e. $P_i$ for each task $v_i$ that is an entry task. 
-\end{itemize}
-and performing, in order, the following steps:
+\section{Workflow Performance Prediction}
+\label{section:performance_prediction}
+Our \textit{three-phase} solution for predicting the execution time of a workflow application performs
+%, in order,  
+the following three steps:
+%\begin{itemize}
+%    \item a \textbf{DAG}: as previously described, in which, for each task $v_i$, the sets $R_i$ (task parameters) and $E_i$ (environment parameters) are already set.
+%   \item all \textbf{input profiles}: data profiles of the workflow input datasets, i.e. $P_i$ for each task $v_i$ that is an entry task. 
+%\end{itemize}
 \begin{enumerate}
-    \item \textbf{Intermediate profile estimation}: for each task $v_i$, which is not an entry task, the output data profile is estimated. This is discussed in \ref{section:intermediate_input}.
+    \item \textbf{Intermediate profile estimation}: for each task in the workflow, its output profile is estimated. This implies that, at the end of this phase, the input data profile of every task in the workflow will be available.  This phase is detailed in Section \ref{section:intermediate_input}.
      %\item (maybe here there is a phase in which we set, for each task $v_i$, the actual number of resources that can be used (i.e. we set $E_i$), depending on the number of other tasks which can be run in parallel with $v_i$. 
-    \item \textbf{Task execution time prediction}: for each task of the DAG, its execution time is predicted. This is discussed in section \ref{section:task_modeling}.
-     \item \textbf{Workflow execution time estimation}: the overall execution time is computed by combining the predictions for the individual task execution times. Generally, the workflow execution time depends on the underlying engine and its scheduling algorithm. In this work we target the Spark environment and workflows in which each task is highly parallel. By assuming that:(i) every task is executed within the same Spark context; (ii) every task is mapped to Spark jobs characterized by a number of Spark tasks greater than the number of available cores (in other words,  assuming that each workflow task will keep busy all the available resources) we can reasonably approximate the workflow  execution time as the sum of the individual tasks execution times. The goodness of this assumption is proven in the experimental section (Section \ref{section:evaluation}).
+    \item \textbf{Task execution time prediction}: for each task of the workflow, its execution time is predicted. This is discussed in section \ref{section:task_modeling}.
+     \item \textbf{Workflow execution time prediction}: the overall execution time is computed by combining the predictions of the individual tasks execution times. Generally, the workflow execution time depends on the underlying engine and its scheduling algorithm. In this work we target workflows that are mapped to Spark applications. By assuming that: i) every task of a workflow is executed within the same Spark context; ii) every workflow task corresponds to a number of Spark tasks that is greater or equal to the number of available cores (in other words,  assuming that each workflow task will keep busy all the available cores) then we can reasonably approximate the workflow  execution time as the sum of the individual tasks execution times. The validity of these assumptions is proven by our experimental results (see Section \ref{section:evaluation}).
 \end{enumerate}
 
 %The makespan of a workflow is the time required to execute all the tasks in a workflow. In general, the makespan is lower bounded by a minimum time given by the longest path from any entry task to any exit task (critical path), and upper bounded by the time spent to execute all the tasks sequentially (including transfer costs). \textbf{XXX If you have mulitple exit tasks is still critical path a lower bound for excetuion ? XXX: resolved}
@@ -267,77 +286,72 @@ and performing, in order, the following steps:
 
 \subsection{Task execution time prediction}
 \label{section:task_modeling}
-In this section we describe how the execution time of a task can be predicted by machine learning. However, the approach described in this section is used also to perform output-data profile estimation as discussed in section \ref{section:intermediate_input}. 
+%In this section we describe how the execution time of a task can be predicted by machine learning. 
+%However, the approach described in this section is used also to perform output-data profile estimation as discussed in section \ref{section:intermediate_input}. 
 The goal of task execution time  prediction is to build, for each different type of task that can be present in a workflow, a machine learning model that, with \textit{adequate} accuracy, is able to predict the task execution time.
 %\textbf{XXX (output data size) XXX: we were referring to this section not to output estimation; we made it clear.}
-The ML model is trained on a set of features characterizing the task, such as a quantitative description of its input data and parameters, and the execution environment. \\
-In this section, we give importance to the choice  of features, proposing a categorization that depends on the knowledge of the application, its data model and the execution environment, and on the complexity of the defined features.
-\noindent We assume that the input data profiles of the task is available. In section \ref{section:intermediate_input} we discuss how those profiles can be estimated.  \\  
+A ML model is trained on a set of features characterizing the task, such as a quantitative description of its input data, its arguments, and features describing the execution environment, with the objective of predicting its execution time. \\
+%In this section, we give importance to the choice  of features, proposing a categorization that depends on the knowledge of the application, its data model and the execution environment, and on the complexity of the defined features.
+%The choice of features to be included in the feature set is crucial for the accuracy of the generated models. The more the feature set resembles the set of features composing the (unknown) underlying model, the higher will be the model accuracy. 
+Identifying and extracting a complete set of features is hard to achieve in this context. First of all, the knowledge on the application and on the execution environment might be limited; secondly, extracting some features might be non-trivial and time-consuming, hence not convenient.  Third, a super-set of features usually leads to overfitting.
 
-%\subsubsection{Feature Categorization}
-%\label{subsec:feature-set}
-The accuracy of a machine learning model depends on the set of features which has been chosen to train that model. In general, the more your feature-set resembles the set of features composing the (unknown) underlying model, the higher will be the model accuracy. 
-However, identifying and extracting a complete set of features is hard to achieve. First of all, your knowledge on the process you wish to describe might be limited; secondly, extracting some features might be non-trivial and time-consuming, hence not convenient for the purposes. 
+State-of-the-art ML solutions for performance prediction are mostly based on simple feature sets that provide an high-level description of the input data and of the execution environment. 
+These are usually called \textit{black-box} features, e.g. the input size and the number of cores can be considered a complete set of black-box features for the performance prediction of a generic parallel application.
+Although it has been proven that black-box features can be powerful enough to get good prediction accuracy (e.g. in Ernest \cite{ernest}), choosing a simple feature set might become limiting when trying to describe the performance of  complex workflows.
+%of more complex applications; e.g. workflow applications.
 
-When dealing with performance estimation, feasible solutions are usually based on simple feature sets that provide an high level description of the data and of the execution environment. 
-Most of the previous works have considered the so-called \textit{black-box} features, e.g. data size and number of cores, which can describe at an high level any type of application.
-Although it has been shown that even with simple features it is possible to achieve good accuracy, a simple choice of features might be limiting when trying to describe the performance of more complex applications, which are the target of this work.
-
-In this paper we consider different feature-sets, showing how different choices can impact the prediction accuracy of the produced models. Without constraining the choice of features, we propose a categorization of the possible feature-sets.
-
-First of all we make a "\textit{knowledge-based}" distinction between features. We call them as black-box and gray-box as defined below:
+In this work, we considered different feature sets, showing how different choices can impact the prediction accuracy of the produced models. Without constraining the choice of features, we propose a categorization of the possible feature sets. The first distinction we make is between: 
 \begin{itemize}
-    \item \textbf{Black-box features} do not require detailed knowledge on the application, data model and execution environment;
-    \item \textbf{Gray-box features} 
-    extend black-box features with application-specific, data-model-specific and environment-specific features. For convenience, we assume that the gray-box feature-set always includes black-box features.
+    \item \textbf{Black-box} features, that do not require detailed knowledge on the application, data model and execution environment.
+    \item \textbf{Gray-box} features, that extend black-box features with application, data-model  and environment-specific features. We assume that gray-box feature sets include also black-box features.
 \end{itemize}
 Orthogonality to the previous distinction, we discriminate among:
 \begin{itemize}
     \item \textbf{Basic features}, organized into:
     \begin{itemize}
-        \item \textbf{Input Data} descriptive features: Assuming that our objective is to build a prediction model for a task $v_i$, this set is made of those features quantitatively describing the input data of $v_i$ (e.g. data size, number of files, number or entries $\cdots$). This corresponds to the set of input data profiles $\Pi^{in}_i$ mentioned in section \ref{section:dag_applications}.
-        \item \textbf{Task Parameters}: a set of features representing the arguments of the task. For a task $v_i$, it is equivalent to the set $R_i$ mentioned in  section \ref{section:dag_applications}.
-        \item \textbf{Execution Environment} descriptive features: a set of features representing the environment in which the task is executed (e.g. number of CPUs and amount of memory). For a task $v_i$, it is equivalent to the set $E_i$ in  section \ref{section:dag_applications}.
+        \item \textbf{Input Data Profiles}: features quantitatively describing the input data of a task (e.g. data size, number of files, number or entries ...).
+        \item \textbf{Task Arguments}: any input parameter given to the task.
+        %a set of features representing the arguments of the task. For a task $v_i$, it is equivalent to the set $R_i$ mentioned in  section \ref{section:dag_applications}.
+        \item \textbf{Execution Environment}: a set of features describing the environment in which the task is executed, e.g. number of cores and amount of memory, or more advanced features characterizing the Spark environment.
     \end{itemize}
     \item \textbf{Composite features}. Even though several machine learning methods are able to capture non-linear dependencies on the features, it is sometimes "helpful" to include non-linear combinations of some basic features in the final feature set. For example, Ernest \cite{ernest} 
     %\textbf{XXX Ernest cite XXX: DONE}
-    introduced the logarithm of the number of cores which encodes the cost of reducing operations in parallel operations and the ratio between data size and number of cores, which approximates the time spent in parallel processing. 
+    introduced the logarithm of the number of cores, which encodes the cost of reducing operations in parallel frameworks, and the ratio between data size and number of cores, which approximates the time spent in parallel processing. 
     %\textbf{XXX Add also the discussion on data size/ number of cores since otherwise it is not clear that you perform combinations below XXX: DONE}.
     We define composite features as linear or non-linear combinations of basic features.
 \end{itemize}
 
 \input{table-feature-sets}
-\noindent Given the aforementioned distinctions, we organize the possible feature sets in four categories, schematized in Table \ref{tab:feature-sets}: 
-\begin{itemize}
-    \item Basic black-box features (\textbf{BB-Basic});
-    \item Basic and composite black-box features (\textbf{BB-Full});
-     \item Basic gray-box features (\textbf{GB-Basic});
-    \item Basic and composite gray-box features (\textbf{GB-Full}).
-\end{itemize}
-In Table \ref{tab:feature-sets-instance}, we provide an instance for each of these four categories. \color{blue}
-The accuracy given by models using \textit{BB-FULL} feature-set is comparable to the accuracy provided by \textit{Ernest}, since they both share the same level of knowledge on the application and features.
-\color{black}
+\noindent Given the aforementioned distinctions, we organize the possible feature sets in four categories, summarized in Table~\ref{tab:feature-sets}: basic black-box features (\textbf{BB-Basic}); basic and composite black-box features (\textbf{BB-Full}); basic gray-box features (\textbf{GB-Basic}); basic and composite gray-box features (\textbf{GB-Full}).
 
-For each category, we added all the candidate features, possibly non-relevant features as well. A proper feature selection algorithm easily removes useless ones and reports them with their importance.   
-%What we denote as feature-set should be considered an initial set of features which may also include non-relevant features. A proper feature-selection algorithm should be used to remove any non-relevant feature from the set.
+%In Table \ref{tab:feature sets-instance}, we provide an instance for each of these four categories. 
+
+According to the proposed categorization, Ernest, i.e. the state-of-the-art for Spark application performance prediction, uses a black-box full (BB-Full) feature set. In the experimental evaluation, our choice of features for the BB-Full feature set included all the Ernest features and will be considered a baseline to evaluate the benefits of our approach.
+
+For each category, we defined a set of candidate features on which we applied Sequential Forward Selection (SFS) \cite{kudo2000comparison} to remove non-relevant ones.
+%What we denote as feature set should be considered an initial set of features which may also include non-relevant features. A proper feature-selection algorithm should be used to remove any non-relevant feature from the set.
 
 % ARIF: we can change the reference and move this sentence to section intermediate_input
-In \ref{section:intermediate_input}, we use the same feature-set distinction for predicting the output data profile of a task, excluding execution environment features.
+
+%In \ref{section:intermediate_input}, we use the same feature set distinction for predicting the output data profile of a task, excluding execution environment features.
 
 \subsection{Model Techniques}
 %\textbf{XXX This section is generic, focus and state what you used XXX: we removed unused techniques and anticipated some results}
 
-In the previous works, Venkararaman et al.(Ernest) \cite{ernest} and Maros et al.\cite{ARDAGNA2019} have applied ML to estimate the execution of simple Spark applications. While Ernest is based on linear regression, with coefficients estimation based on non-negative least squares (NNLS), in Maros et al. authors took into account more complex ML techniques such as Decision Tree and Random Forest.\\
+In the previous works, Venkararaman et al. \cite{ernest} (Ernest's authors)  and Maros et al.\cite{ARDAGNA2019} have applied ML to estimate the execution of simple Spark applications. While Ernest is based on linear regression, with coefficients estimation based on non-negative least squares (NNLS), in Maros et al. authors took into account more complex ML techniques such as Decision Tree and Random Forest.\\
 %This is a variant of the least squares algorithm with the added restriction that coefficients must be non-negative. This restriction ensures that each term provides a non-negative contribution to the overall execution time, preventing estimation of negative execution times.
 %In \cite{ARDAGNA2019}, four classic ML techniques have been compared, including L1-regularized linear regression (LASSO), neural networks, decision trees, and random forest. \\
-In this work we compare the performance of three suitable ML techniques:
+In Section \ref{section:evaluation} we compare the performance of three suitable ML techniques:
 \begin{itemize}
     \item Linear regression (LR), which produces models which can be easily interpreted, but hardly captures complex interactions between features.
     \item Decision Trees (DT) and Random Forest (RF), having the ability to capture non-linear relationships, still allowing a good interpretability of the model.
     %\item Neural Networks (NN) can capture non-trivial interactions among the input features albeit less interpretable.
 \end{itemize}
 
-In the experimental section we analyze the performance of different model techniques on different feature-sets, showing the advantages and drawbacks of using one model w.r.t. another and testing the model robustness against the variation of some relevant features  (e.g. data size and number of CPUs). Specifically, we show how RF and DT have higher accuracy and robustness w.r.t. LR. 
+Given a target task type, for which we want to predict the execution time, the training set provided to the chosen machine learning technique is made of several executions of that task. 
+As proven in the experimental section, depending on the feature set and on the model technique, it might not be necessary to run on big inputs and extremely powerful environments. Even running small executions on medium-size clusters can still produce prediction models with good prediction error on larger inputs and clusters.
+%In the experimental section we analyze the performance of different model techniques on different feature sets, showing the advantages and drawbacks of using one model w.r.t. another and testing the model robustness against the variation of some relevant features  (e.g. data size and number of cores). 
+%Specifically, we show how RF and DT have higher accuracy and robustness w.r.t. LR. 
 
 
 
@@ -346,7 +360,7 @@ In the experimental section we analyze the performance of different model techni
 %\subsection{Training and Test Sets}
 
 %ARDAGNA2019\\
-%\color{blue}
+%\color{black}
 %To learn and evaluate the ML models, data coming from the experiments are split into training and test sets. The former is used to learn the model, whereas the latter is used to evaluate its accuracy. Since hyper-parameters tuning is performed for each ML technique (see Section IV-D), a sub- set of the training data is used for cross-validation to reduce over-fitting. For each workload, we evaluate the accuracy of the prediction models in terms of core interpolation and data size extrapolation capabilities, acknowledging the fact that the data available for learning the models (training set) might have been obtained via experiments on setups different from the one for which the prediction is needed (test set). Figure 1 and Table II summarize the scenarios considered.
 %In the core interpolation scenarios, we consider runs with the same dataset size (reported in Table II) and verify the capabilities of the trained models of interpolating the number of cores. Figure 1 shows the various scenarios (y-axis) of core interpolation built for each workload based on different splits of the data into training and test sets: in each row (case number), blue boxes represent configurations for which the data were used as part of the training set (and cross- validation) and red crosses indicate configurations used as part of the test set10. We designed scenarios such that larger case numbers are associated with harder predictions, as their training data include samples from a smaller range of experiments w.r.t. the number of cores. In the data size extrapolation scenarios, we put the runs with the largest dataset size (spanning across all available cores configurations) in the test set while the runs with the other dataset sizes in the training data, as shown in the two rightmost columns of Table II. Moreover, training sets are further reduced by removing runs according to the same schema presented for core interpolation. By doing so, in these experiments we evaluate at the same time the core interpolation and the data size extrapolation capabilities. In other words, these experiments differ from the core interpolation scenarios because: (i) the dataset sizes in training and test sets are no longer the same, (ii) in the test set we also include observations where the number of cores is the same as in some observations of the training set (but again with different dataset sizes).
 %\color{black}
@@ -354,63 +368,59 @@ In the experimental section we analyze the performance of different model techni
 
 \color{black}
 \subsection{Predicting intermediate input features}
-\input{procedure}
+%\input{procedure}
 \label{section:intermediate_input}
-When we described how the execution time of a task should be predicted, we assumed that all its input profiles were available. However, input data of a task are known only when all predecessors tasks have completed their executions.\\
-Since performance prediction is done before actually running the workflow, it becomes necessary to estimate all the tasks' input profiles  offline.\\
-In the following, we assume that the input data of entry tasks are known and already profiled, thus not impacting neither on the run-time nor on the performance-prediction time. This assumption is in general acceptable, since:
-\begin{itemize}
-    \item the application users tipically download a limited number of datatasets which are re-used for multiple workflows, or, at least, several runs of the same workflow (e.g. when fixing / improving the workflow). The data could be profiled once imported, and the profile would be available for multiple executions.
+In order to perform the task execution time prediction step, all the input features, including the input data profiles, must be available offline. However, this does not hold for intermediate tasks, which input data have not been computed yet. To address this problem, we perform, as the first step, an estimation of all such data profiles.\\
+We assume that entry tasks import data which have already been profiled.
+%, thus not impacting neither on the run-time nor on the performance-prediction time. 
+This assumption is in general acceptable, since application users typically download a limited number of datasets which are then re-used for several workflow runs and can therefore be profiled once for all.
+%\begin{itemize}
+%    \item the application users typically download a limited number of datatasets which are re-used for multiple workflows, or, at least, several runs of the same workflow (e.g. when fixing / improving the workflow). The data could be profiled once imported, and the profile would be available for multiple executions.
     %\item The profiling task is usually simpler and less time consuming w.r.t the workflow that uses it; i.e. the profiling time is neglectable w.r.t. to the workflow execution time.
-    \item  even this initial profiling could be performed approximately in a short time. E.g., Haas et al.\cite{haas1995sampling} base their estimation on data samples, empirically comparing various estimators from literature. 
+%    \item  even this initial profiling could be performed approximately in a short time. E.g., Haas et al.\cite{haas1995sampling} base their estimation on data samples, empirically comparing various estimators from literature. 
     %This way of profiling data is less time consuming and could be also a good runtime solution in case offline profiling resulted unfeasible. 
-    However, a low accuracy of this estimation would negatively affect the quality of performance prediction.
-\end{itemize}
+%    However, a low accuracy of this estimation would negatively affect the quality of performance prediction.
+%\end{itemize}
 
- The goal is to estimate, for every task $v_i$ in the workflow its output profile $P_i$, i.e. building a model for each feature in $P_i$, given:
+ The goal is to estimate, for every task $v_i \in V$, which is not the exit task, its output profile $P_i$.
+ Specifically, an estimation model should be built for each feature in $P_i$. (e.g. data size, number of entries, etc.). \\
+ Similarly to the execution time prediction, the feature set used for this type of estimation includes: i) the input profiles of task $v_i$, ii) the task arguments.  Moreover, the same feature set  categorization proposed in section \ref{section:task_modeling} has been applied, reasonably excluding any environment-related feature.
+ 
+\noindent Each feature in $P_i$ can be estimated:
 \begin{itemize}
-    \item the input profiles of task $v_i$, i.e. $\Pi^{in}_i$
-    \item the set of task parameters $R_i$
-\end{itemize}{}
-
-\noindent As previously discussed, depending on the knowledge on the application / data model, your feature set might be more or less detailed.
-The same categorization proposed in  \ref{subsec:feature-set} can be applied, with the reasonable assumption of excluding execution environment features and any related composite feature.
-%For instance, if a task just converts each row of a table into another format, and the profile just describes the number of rows in the datasets, the estimation would be very trivial. 
-%Consider, instead, a task implementing a JOIN  between two datasets, with a condition on the values. In that case, the profile might also include statistics on the values  (e.g. cardinality, distribution), and have the predicate encoded as task parameters. An accurate model for output estimation, in that case, should take into account the \textit{selectivity} of the predicate w.r.t to the data to which it is applied. 
-
-Each feature in $P_i$ can be estimated:
-\begin{itemize}
-    \item \textbf{Analytically}: there is a known combination of features of the chosen feature-set which allows to exactly compute the output feature.
-    \item \textbf{Heuristically}: the exact formula for computing the output feature is unknown or there is not enough information to compute it; in this case,  heuristics on the available feature-set can be defined.
+    \item \textbf{Analytically}: there is a known combination of features of the chosen feature set which allows to exactly compute the output feature.
+    \item \textbf{Heuristically}: the exact formula for computing the output feature is unknown or there is not enough information to compute it; in this case,  heuristics on the available feature set can be defined.
     \item by \textbf{Machine Learning}: applying ML to estimate the output feature, similarly to what was has been said  for task execution time prediction.
 \end{itemize}
+The intermediate profile estimation phase estimates each task output profile, starting from entry nodes, which input data profile was computed offline (previous assumption), up to the exit node.\\
+In the experimental section (\ref{section:evaluation}) we compare different ways of predicting the output profiles, showing the advantage of using heuristics/analytical models w.r.t. ML. 
+Even though heuristics and analytical models require more knowledge on the application, they are able to guarantee lower prediction error.
+Analytical and heuristic-based based estimations for ScQL (GMQL) are described in \cite{binning}.
 
-\noindent For convenience, we define the procedure:
-\begin{equation}
-\label{eq:predict}
-predict(i, p, \Pi_i^{in}, R_i)
-\end{equation}
+%\noindent For convenience, we define the procedure:
+%\begin{equation}
+%\label{eq:predict}
+%predict(i, p, \Pi_i^{in}, R_i)
+%\end{equation}
 
-\noindent which, given a task $v_i$, its input profiles $\Pi_i^{in}$ and task parameters $R_i$, returns the estimated output profile $P_i$.
-Finally, as mentioned in \ref{subsec:pipeline}, before predicting tasks' execution time, all the input profiles are  estimated by calling the recursive procedure \textproc{profileEstimation}(e), starting from $e$, which is the exit task of the DAG.\\
-\color{blue}
-In the experimental section \ref{section:evaluation} we compare different ways of predicting the output profiles, showing the advantage of using heuristics / analytical models w.r.t. ML. 
-Even thought heuristics and analytical models require more knowledge on the application, they are able to guarantee lower prediction error.
-\color{black}
+%\noindent which, given a task $v_i$, its input profiles $\Pi_i^{in}$ and task parameters $R_i$, returns the estimated output profile $P_i$.
+%Finally, as mentioned in \ref{subsec:pipeline}, before predicting tasks' execution time, all the input profiles are  estimated by calling the recursive procedure \textproc{profileEstimation}(e), starting from $e$, which is the exit task of the DAG.\\
+%\color{black}
+
+%\color{black}
 %\textbf{XXX Here it is not clear what you do in concrete. The problem its clear but not its solution XXX: spoiler on the experimental section}
 
-\subsection{Data Collection}
-\label{subsec:data-collection}
-Given a target task type, for which we want to predict the execution time, the training set provided to the chosen machine learning technique is made of several executions of that task.
-Each execution should be described by:
-\begin{itemize}
-    \item All the features contained in the selected feature-set
-    \item The execution time
-    \item Features describing the output data, coherently with the features chosen to describe the input data. These features are required if the output estimation is performed by machine learning (see section \ref{section:intermediate_input}).
-\end{itemize}
-Although some machine learning methods are quite robust to noise, it is advised to use a clean execution environment entirely dedicated to training data collection. To further eliminate noise, the task should be the only task in the DAG (unless some entry task or exit task is necessary).
+%\subsection{Data Collection}
+%\label{subsec:data-collection}
 
-As we prove in the experimental section, depending on the feature-set and on the model technique, it might not be necessary to run on big inputs and extremely powerful environments. Even running many short executions on medium-size resources could still produce prediction models with stable prediction error.
+%Each execution should be described by:
+%\begin{itemize}
+%    \item All the features contained in the selected feature set
+%    \item The execution time
+%    \item Features describing the output data, coherently with the features chosen to describe the input data. These features are required if the output estimation is performed by machine learning (see section \ref{section:intermediate_input}).
+%\end{itemize}
+%Although some machine learning methods are quite robust to noise, it is advised to use a clean execution environment entirely dedicated to training data collection. To further eliminate noise, the task should be the only task in the DAG (unless some entry task or exit task is necessary).
+
 
 %Notes on Spark scheduling:
 
@@ -422,7 +432,7 @@ As we prove in the experimental section, depending on the feature-set and on the
 %Layered model for estimating worflow makespan:
 
 
-%\color{blue}
+%\color{black}
 %A model for estimating the makespan of a scientific workflow takes into account the workflow structure and divides tasks into levels based on the dependencies between them, so so that tasks assigned to each level are independent to each other. Then, for each level, its execution time (which is equal to the time required for the execution of the tasks in that level) can be calculated considering the overall runtime of the tasks of that level (that is the sum of the individual tasks runtime). The assignment in levels can be done using either a top-down or a  bottom-up approach that assigns a level to each task by taking into account the level of its predecessors or successors respectively. Once the assignment has taken place, a level-based estimation model takes into account level characteristics to provide an overall performance estimate for the workflow.
 %\cite{pietri2014performance}
 
@@ -447,19 +457,17 @@ As we prove in the experimental section, depending on the feature-set and on the
 \label{section:evaluation}
 We applied the proposed performance prediction model to ScQL DAGs, introduced in \ref{subsec:scql}, focusing on two of its most complex and peculiar operators. In this section we:
 \begin{itemize}
-    \item describe the experimental setup (\ref{subsec:exp-setup}), how the validation error was measured and how hyper-parameter tuning was performed (\ref{subsec:error-hyper})
+    \item describe the experimental setup (\ref{subsec:exp-setup}), the evaluation metric and how hyper-parameter tuning was performed (\ref{subsec:error-hyper})
     \item assess the accuracy of task execution time prediction for different choices of feature sets, different ML techniques and execution environment configurations (\ref{subsec:results-task}).
-    \item asses the accuracy of output profile estimation, either using analytical models / heuristics and ML (\ref{subsec:results-profile}).
-    \item measure the error in predicting the workflow execution time, comparing the gray-box models to the state of the art (\ref{subsec:results-workflow}).
-    \item present an extrapolation analysis, in which we compare the robustness \textbf{XXX robustness could be interpreted in a different way, stress interesting since big data grows and analyses performed periodically XXX} of different ML models against the increase of the input data size and of the cluster computational power (\ref{subsec:extrapolation}).
+    \item assess the accuracy of output profile estimation, either using analytical models/heuristics, and ML (\ref{subsec:results-profile}).
+    \item measure the error in predicting the workflow execution time, comparing  gray-box models to the state of the art black-box based (\ref{subsec:results-workflow}) and validating on workflows that were much more complex than the workflows used for collecting training data.
+    \item present an extrapolation analysis, in which we compare the \textit{robustness}  of different ML models against the increase of the input data size and of the cluster computational power (\ref{subsec:extrapolation}). Specifically, we prove that models trained on small input data (number of cores) are good at predicting execution with larger input data (higher number of cores). This is particularly beneficial, given the nature of big data analyses, in which the size of processed data gets bigger and bigger, as well as the computational resources required for processing.
 \end{itemize}
 
 
-\color{blue}
+\color{black}
 %The accuracy of models using basic and composite black-box features is comparable to the accuracy provided by the state of the art (\textit{Ernest}).
 \color{black}
-
-%Todo: introduce this section
 
 %\begin{itemize}
 %\item Application 
@@ -472,58 +480,58 @@ We applied the proposed performance prediction model to ScQL DAGs, introduced in
 %\item Discussion on extrapolation analysis
 %\item. Whenever is possible comparison with Ernest 
 %\end{itemize}
-
-
-
 %Moreover, we used single machine (SM) provided by the CINECA computing centre, with 72vCores, 213GB RAM, Spark 2.3.2, on Ubuntu 18.04.4 LTS.
-
 %\textbf{XXX Results here are all based on AWS?  Did you drop your internal node?  Below you mention single node:  stress this cover a continuum where you run you application on a large multi-core node and distributed cluster to validate your approach  XXX: DONE, WE REMOVED ANY MENTION TO SINGLE MACHINE EXECUTION}
+
 \subsection{Experimental setup}
 \label{subsec:exp-setup}
-Training sets were built running more than 4500 executions, collecting, as discussed in \ref{subsec:data-collection}, all the information required for execution time prediction and output profile estimation, using an in-house developed profiling solution.
-
-Experiments were run on Amazon AWS (EMR service) choosing a variable number of \texttt{r5d.2xlarge} instances (8 vCores, 64 GiB RAM). Specifically we used clusters with 6,8,10 and 12 worker nodes, using the \texttt{emr-5.19.1} release with \texttt{Spark 2.3.2} and the \texttt{Amazon 2.8.5} Hadoop distribution.
+\color{black}All the experiments in this section were run on Amazon AWS (EMR service) \color{black}choosing a variable number of \texttt{r5d.2xlarge} worker nodes (each having 8 vCores, 64 GiB RAM). Specifically, we used clusters with 6,8,10 and 12 worker nodes, running the \texttt{emr-5.19.1} release with \texttt{Spark 2.3.2} and the \texttt{Amazon 2.8.5} Hadoop distribution.
+Training sets were built running more than 4500 executions, collecting all the information required for execution time prediction and output profile estimation, using an in-house developed profiling solution.
 
 \subsection{Evaluation metric and hyper-parameter tuning}
 \label{subsec:error-hyper}
 %todo: talk about random data generation
-We measure the prediction error reporting the Mean Absolute Prediction Error (MAPE), defined as:
-$$ \frac{1}{n} \sum_{t=1}^n \bigg| \frac{A_t - F_t}{A_t}\bigg|$$
-where $A_t$ is the actual value and $F_t$ is the forecast value.
+%We measure the prediction error reporting the Mean Absolute Prediction Error (MAPE), defined as:
+%$$ \frac{1}{n} \sum_{t=1}^n \bigg| \frac{A_t - F_t}{A_t}\bigg|$$
+%where $A_t$ is the actual value and $F_t$ is the forecast value.
 
-We report the validation error measured with 5-Fold cross validation.
+%We report the validation error measured with 5-Fold cross validation. 
 
 \input{table-hyper}
-\textit{a-MLLibrary}, an open source  library\footnote{\url{https://github.com/eubr-atmosphere/a-MLLibrary}} built on top of scikit-learn 0.19.1\footnote{https://scikit-learn.org}, was used to test different values for the hyper-parameters characterizing each learning methods.
-Several combination of values for the hyper-parameters were tested and the best combination, corresponding to the lowest MAPE obtained with 5-fold cross validation, was selected.
-The most frequently used hyper-parameters are reported in table \ref{tab:hyper-parameters}. 
-Some parameters, e.g. the alpha penalty and the maximum three depth for Random Forest and Decision Tree help preventing overfitting. Minimum Samples to Split/per Leaf represent, respectively, the minimum number of samples required to split a node and the minimum number of samples required to be a leaf. More details on the hyper-parameters are provided in the scikit-learn documentation.
+\textit{a-MLLibrary}, an open source  library\footnote{\url{https://github.com/eubr-atmosphere/a-MLLibrary}} built on top of scikit-learn 0.19.1\footnote{https://scikit-learn.org}, was used to test different values for the hyper-parameters characterizing each learning methods along the lines of the work in \cite{ARDAGNA2019}.
+Several combinations of values for the hyper-parameters were tested, and the best combination, corresponding to the lowest MAPE obtained with 5-fold cross-validation, was selected.
+%\textbf{XXX You did also feature selection right?  mention here SFS I guess XXX}
+
+The most frequently used hyper-parameters are reported in Table \ref{tab:hyper-parameters}. 
+Some parameters, e.g. the alpha penalty and the maximum three depth for Random Forest and Decision Tree help to prevent overfitting. Minimum Samples to Split/per Leaf represent, respectively, the minimum number of samples required to split a node and the minimum number of samples required to be a leaf. More details on the hyper-parameters are provided in the scikit-learn documentation.
+\color{black}
+For each feature set category, we first defined a set of candidate features and then applied SFS to exclude non-relevant features.\color{black}
 
 \subsection{Task execution time prediction}
 \label{subsec:results-task}
 %\textbf{XXX for hyper parameter tuning?  XXX: no, for computing the validation error.}
-Tables \ref{tab:map-aws} and   \ref{tab:join-aws}  report the measured prediction error (MAPE) for different ScQL operators, i.e. ScQL-Map (table \ref{tab:map-aws}) and ScQL-Join (table \ref{tab:join-aws}).
+Tables \ref{tab:map-aws} and   \ref{tab:join-aws}  report the measured MAPE for different ScQL operators, i.e. ScQL-Map (Table \ref{tab:map-aws}) and ScQL-Join (Table \ref{tab:join-aws}).
 Within each table, we report the prediction error for:
 \begin{itemize}
-    \item different choices of the feature-set, i.e. black-box vs gray-box and basic vs full, as described in section \ref{subsec:feature-set};
-    \item different machine learning methods, including Decision Tree (DT), Random Forest (RF) and Linear Regression (LR). We excluded methods for which the best MAPE was higher than 20\%, like XGBoost and Neural Networks.
+    \item different choices of the feature set, i.e. black-box vs gray-box and basic vs full, as described in Section \ref{section:task_modeling};
+    \item different machine learning methods, including DTs, RFs, and LR. We excluded methods for which the best MAPE was higher than 20\%, like XGBoost and Neural Networks.
 \end{itemize}
 
 \input{tables-mape}
 \input{table-features}
 
-Tables \ref{tab:relevant-features-map} and  \ref{tab:relevant-features-join}, show, respectively, the relevant features for ScQL-Map and ScQL-Join provided by the ML technique giving the lowest MAPE (Random Forest), for a given feature-set choice (black-box vs gray-box, basic vs composite).
-The feature called \texttt{binned-result-size} represents the (known-by-semantics) result size, accounting for the replication of some intervals due to binning. The definition of this composite feature includes gray-box features such as the \texttt{bin-size} and the \textit{average-interval-length}.
-Similarly applies to the feature called \texttt{binned-total-size}, which definition includes also a task parameter \texttt{distance}.
+\noindent Tables \ref{tab:relevant-features-map} and  \ref{tab:relevant-features-join}, show, respectively, the relevant features for ScQL-Map and ScQL-Join provided by the ML technique giving the lowest MAPE (RF), for a given feature set choice (black-box vs. gray-box, basic vs. composite).
+The feature called \textit{binned-result-size} represents the (known-by-semantics) result size, accounting for the replication of some intervals due to binning. The definition of this composite feature includes gray-box features such as the \textit{bin-size} and the \textit{average-interval-length}.
+Similarly applies to the feature called \textit{binned-total-size}, which definition includes also a task parameter \textit{distance}.
 
 \noindent Results show that:
 \begin{itemize}
-    \item Random Forest is able to give good predictions even with black-box basic features. Therefore,  even without having a detailed knowledge on the application and on the environment, and without "helping" the model by defining composite (i.e. non-linear) features, it is still possible to get an acceptable error. 
-    \item Linear Regression performs well only when all the complex the features are in place (gray-box), including the user-provided non-linear features (composite). 
+    \item RF is able to give good predictions even with black-box basic features. Therefore,  even without having detailed knowledge on the application and on the environment, and without "helping" the model by defining composite (i.e. non-linear) features, it is still possible to get an acceptable error. 
+    \item LR performs well only when all the complex  features are in place (gray-box), including the user-provided non-linear features (composite). 
     \item Basic gray-box features do not significantly reduce the prediction error unless they are properly combined into composite features. 
     \item The higher complexity of the ScQL-Join operation w.r.t the ScQL-Map is reflected in the higher prediction error.
     %\item Single machine executions, using local master option, are much less predictable than executions performed on a well configured AWS cluster using Yarn.
-    \color{blue}
+    \color{black}
     %Todo: our single machine (cineca) showed strange behaviours, we will re-rerun on an EC2 machine. 
     \color{black}
 \end{itemize}
@@ -532,7 +540,7 @@ Similarly applies to the feature called \texttt{binned-total-size}, which defini
 \subsection{Intermediate profiles estimation}
 \label{subsec:results-profile}
 In Table \ref{tab:output-estimation} we report the prediction error (MAPE) for the main features describing the result of a ScQL-Join operation.
-While the output number of files can be analytically determined, the output total size and the output average interval length cannot be known a priori, since they depend on the number of intersections between input intervals. For those features we defined two heuristics which give a low prediction error. For all the three features we reported the prediction error obtained using ML models (specifically, Decision Tree). Although the output total size is a black box feature, the prediction error reported in the table was obtained using a model which took into account gray box features; using only black-box features we were not able to obtain a  MAPE lower than 0.22. We don't report ScQL-Map prediction errors since all the output features can be easily estimated, both analytically and by applying ML.
+While the output number of files can be analytically determined, the output total size and the output average interval length cannot be known a priori, since they depend on the number of intersections between input intervals. For those features, we defined two heuristics which give a low prediction error. \color{black} For instance, the number of output samples (files) of  a ScQL-Join operation is simply estimated as the product between the number of samples in the reference dataset and the number of samples in the experiment dataset. \color{black}  For all the three features we reported the prediction error obtained using ML models (specifically, Decision Tree). Although the output total size is a black box feature, the prediction error reported in the table was obtained using a model which took into account gray box features; using only black-box features we were not able to obtain a  MAPE lower than 22\%. We do not report ScQL-Map prediction errors since all the output features can be easily estimated, both analytically and by applying ML, \color{black}with a MAPE lower than 1\%.\color{black}
 
 \subsection{Workflow execution time prediction}
 \label{subsec:results-workflow}
@@ -542,8 +550,13 @@ While the output number of files can be analytically determined, the output tota
   \caption{Workflow execution time prediction distributions for BB-FULL and GB-FULL}
   \label{fig:workex-boxolot}
 \end{figure}
-In order to measure the workflow execution time prediction error we automatically generated DAGs \textbf{XXX How many? And stress totally unseen queries XXX} with different topologies including ScQL-Map and ScQL-Join, together with other mandatory entry/exit tasks which were not discussed in this paper. As described in section \ref{subsec:pipeline}, we first estimated the input profiles for all the tasks in the DAG and then predicted each task execution time using ML models that we previously built.
-We run a total of 168 complex DAGs and we compared the workflow execution time prediction error for BB-FULL and GB-FULL feature-sets. The error distribution is depicted in Fig. \ref{fig:workex-boxolot}. While using BB-FULL we observed an average MAPE of \textbf{28\%}, using GB-FULL features (Ernest) the average MAPE dropped to \textbf{17\%}.  
+In order to measure the workflow execution time prediction error we automatically generated 168 workflows  with different topologies including ScQL-Map and ScQL-Join, together with other mandatory entry/exit tasks which, for simplicity, are not discussed in this paper.  \color{black}Each ScQL workflow was mapped to a Spark Application. On average, each generated Spark application contained 23 jobs, 117 stages and more than 16K tasks per critical stage. \color{black}
+%\textbf{XXX Add some more details: in how many Spark applications they map? How long were the workflow runnings? How may Spark stages were run? How many tasks within Spark stage? You need to state this also given your assumptions above XXX}
+Note that those workflows have higher complexity w.r.t to the workflows used to build the training sets, mostly containing only the task for which the ML model was going to be build.
+In other words, here we demonstrate the ability of our modular approach to predict the execution time of workflows of unseen complexity, although minimal workflows were used for training the ML models.
+
+As described in Section \ref{section:performance_prediction}, we first estimated the input profiles for all the tasks in the DAG and then predicted each task execution time using ML models that we previously built.
+We compared the workflow execution time prediction error (MAPE) for BB-FULL, i.e. the state of the art Ernest approach, and GB-FULL feature sets. The error distribution is depicted in Fig. \ref{fig:workex-boxolot}. While using BB-FULL we observed an average MAPE of \textbf{28\%}, using GB-FULL features the average MAPE dropped to \textbf{17\%}.   Moreover, while with BB-FULL (Ernest)  the error variance is higher, reaching more than 120\% prediction error in one case, the highest error measured for GB-FULL is slightly higher than 50\%.
 \input{table-output-estimation}
 
 %Table with MAPE, MAP-JOIN / LOCAL-AWS
@@ -595,45 +608,55 @@ We run a total of 168 complex DAGs and we compared the workflow execution time p
 
 \subsection{Extrapolation analysis}
 \label{subsec:extrapolation}
+
+%\textbf{XXX The results here come from in house cluster or AWS, clarify XXX}
+
 A desirable way to build a prediction model for performance estimation would consist in learning with small input data and few computational resources and expect a low prediction error even when the input data is much bigger and the execution environment is more powerful. In this way, the training dataset could be built in a short-time and renting expensive resources would not be necessary.
-If a ML model is able to guarantee a stable prediction error for "unseen" value ranges of a given feature, we can say that the model is robust against the scaling of that feature.
-In this section we compare the robustness of models, built with different  ML techniques and trained on different feature-sets, w.r.t. the scaling of the number of cores and of the input data size. Since we observed that Decision Tree models are as robust as the models produced by Random Forest, we only show the comparison between RF and LR.\\
+If a ML model is able to guarantee a stable prediction error for unseen value ranges of a given feature, we can say that the model is \textit{robust} against the scaling of that feature.
+In this section, we compare the robustness of models, built with different  ML techniques and trained on different feature sets, w.r.t. the scaling of the number of cores and of the input data size. Since we observed that DT models are as robust as the models produced by RFs, we only show the comparison between RF and LR.\\
 %\textbf{XXX Motivate why only RF and LR, most accurate? XXX: DONE, added a sentence} \\
 In the first two rows of Fig. \ref{fig:scalability}, we tested the robustness against the scaling of the input data size for ScQL-MAP (first row) and ScQL-Join (second row). The first plot in each row shows on the x-axis the input data size and on the y-axis the number of executions in our dataset performed with an input of that size.
 We trained the models on small executions (with input size lower than $x_0$ = 20\% of the maximum size) and measured the validation MAPE on executions belonging to unseen input size ranges: 20-40\%, 20-60\%, 20-80\% and 20-100\% of the maximum input size.
 The scaling of the MAPE is depicted in the plots belonging to the second and third columns of Fig. \ref{fig:scalability}. The first point in each plot (positioned at $x_0$) represents the validation MAPE computed on some executions randomly selected  from the 0-20\% range that were not used for training. \\
-Results show that Random Forest guarantees a good scaling, while Linear Regression fails (overfits in 0-20\% range), unless gray-box full features are provided. 
-
-Similarly, we tested the robustness against the scaling of the number of cores, which, for our experiments, corresponds to the scaling of the number of worker nodes in the AWS cluster. We trained our models on executions with 16 and 32 cores (i.e. 2 and 4 worker nodes), and measured the validation MAPE on executions using 48 cores, (48 \& 64) cores and (48 \& 64 \& 96) cores.\\
-Again, results show that Random Forest guarantees a good scaling, while Linear Regression fails (overfits), unless composite features are used. In this case LR can is robust even using black-box features, given that non-linear features involving the number of cores are defined (in our feature-sets is \texttt{input-total-size/cores}).
+Results show that RF guarantees a good scaling, while LR fails (overfits in 0-20\% range), unless gray-box full features are provided. Similarly, we tested the robustness against the scaling of the number of cores, which, for our experiments, corresponds to the scaling of the number of worker nodes in the EMR cluster. We trained our models on executions with 16 and 32 cores (i.e. 2 and 4 worker nodes), and measured the validation MAPE on executions using 48 cores, (48 \& 64) cores and (48 \& 64 \& 96) cores.\\
+Again, results show that RF guarantees a good scaling, while LR fails (overfits), unless composite features are used. In this case, LR  is robust even using black-box features, given that non-linear features involving the number of cores are defined (in our feature sets  \textit{input-total-size/cores} has been selected by SFS).
 
 
 
 \section{Related Work}
 \label{section:related_work}
-To the best of our knowledge, this is the first comprehensive work on performance estimation for scientific data-driven workflows based on hybrid models, with specific focus on Spark. Indeed, previous works have always been focused on either performance prediction for cloud-based applications (e.g. Spark Applications), or on the estimation of the workflow makespan. Moreover, there is no work explicitly addressing the problem of intermediate result estimation, that arises when combining the two aforementioned problems. 
-Therefore, we divide the related work in two: performance prediction for Spark applications; makespan estimation for DAG-based applications. 
+To the best of our knowledge, this is the first comprehensive work on performance estimation for scientific data-driven workflows, implemented on Spark, based on machine learning and analytical models. 
+%Indeed, previous works have always been focused on either performance prediction for cloud-based applications (e.g. Spark Applications), or on the estimation of the workflow makespan.
+Moreover, we did not find any modular workflow performance prediction solutions which explicitly address the problem of estimating intermediate tasks input data profiles, which are not known offline.
+%We divide the related work in two areas i) performance prediction for Cloud-based Spark applications; ii) workflow performance prediction.  
 
-Performance prediction for cloud based applications has been tackled in several ways. 
-Some studies apply traditional techniques, such as analytical models \cite{nelson1988approximate, mak, ardagna1, liang2000performance} and simulation \cite{bertoli2009jmt}. These techniques usually require detailed knowledge of the system, which is available only at runtime, and make  simplifying assumptions that  produce models unable to capture the complexity of cloud-based big data applications, losing in accuracy. More recently, there have been studies exploiting machine learning (ML) models for performance prediction of large systems \cite{ernest, MUSTAFA20183767, pan2017hemingway, alipourfard2017cherrypick, ARDAGNA2019, lattuada2019gray}.
-Most of these works use a \textit{black-box} approach, in which historical data is used to predict future execution time, without knowledge of the system internals. Some works, instead, try to apply \textit{gray-box} approaches, taking into account some system detail \cite{ARDAGNA2019, lattuada2019gray, shon2008scientific}. 
-\textit{Ernest} \cite{ernest}, using simple features (functions of the input size and of the number of cores) and non-negative least squares (NNLS) regression, is considered the state-of-the art in using ML. In \cite{ARDAGNA2019}, several ML models and several approaches (\textit{black-box} vs \textit{gray-box}) are compared, showing better accuracy w.r.t \textit{Ernest}.
+Performance prediction for cloud-based applications has been tackled in several ways. 
+Some studies apply traditional techniques, such as analytical models \cite{nelson1988approximate, mak, ardagna1, liang2000performance} and simulation \cite{bertoli2009jmt}. These techniques usually require detailed knowledge of the system, which is available only at runtime, and make  simplifying assumptions that  produce models unable to capture the complexity of cloud-based big data applications, losing in accuracy. More recently, there have been studies exploiting machine learning (ML) models for performance prediction of large systems \cite{ernest, MUSTAFA20183767, pan2017hemingway, alipourfard2017cherrypick, ARDAGNA2019}.
+Most of these works use a \textit{black-box} approach, in which historical data is used to predict future execution time, without knowledge of the system internals. Some works, instead, try to apply \textit{gray-box} approaches, taking into account some system detail \cite{ARDAGNA2019, shon2008scientific}. 
+\textit{Ernest} \cite{ernest}, using simple features (functions of the input size and of the number of cores) and non-negative least squares (NNLS) regression, is considered the state-of-the-art in using ML. In \cite{ARDAGNA2019}, several ML models and several approaches (\textit{black-box} vs. \textit{gray-box}) are compared, showing better accuracy w.r.t \textit{Ernest}.
 
-The workflow scheduling problem is a well-known NP-complete problem \cite{hartmanis1982computers}. However, even if there is a quite a lot of work related  to optimal scheduling, only a limited amount of work deals with performance estimation, which, however,  cannot be easily decoupled / generalized w.r.t. to the specific scheduling algorithm used by the underlying WMS (Workflow Management System).
-Most of the available estimation models deal with simple workflows having unit tasks or no dataflow latencies on homogeneus systems. Some works focus on prividing lower and upper bounds for the makespan \cite{al1990lower, jain1994lower, hu1994improved}. A level based approach partitions the DAG in levels and computes the makespan of each level, by combining / dividing the execution time of each task in a level. The makespan of all levels are summed up to produce an estimate of the overall workflow makespan.
-Todo: complete the references \textbf{XXX and I would suggest more recent, also the last 3 above are rather old XXX}. \\
+In the area concerning workflow performance prediction, most of the works focus on the individual task execution time prediction \cite{pham2017predicting, da2015online, hilman2018task}, highlighting the important role that this prediction plays in the context of optimal workflow scheduling \cite{kousalya2017workflow}. In those papers,  machine learning techniques are applied to predict the execution time of tasks contained in different real-word static workflows, i.e. workflows with a fixed structure,  executed on the cloud. feature sets mostly accounts for environment parameters and only the workflow input data size, not the individual input to each task, is used to describe the input data.
+%In \cite{pham2017predicting}, machine learning techniques are applied to predict the execution time of tasks contained in different real-word static workflows, i.e. workflows with a fixed structure,  executed on the cloud. Their feature set mostly accounts for environment parameters and only the workflow input data size, not the individual input to each task, is used to describe the input data. Similarly, in  \cite{pham2017predicting} and \cite{da2015online}, tasks runtimes, together with other parameters, are predicted for some static scientific workﬂows. Again, only the workflow input data size is used to build prediction models. These last works introduce an online incremental learning approach which improves estimates as more information becomes available. 
 
-Highlight differences w.r.t this  publication: \cite{pham2017predicting}: not our DAGs, not spark, consider only input data of workflows (which are static and not composable) - so no intermediate profile estimation, and focus more on runtime parameters (environment) - in commond attempt to formalize workflows, comparison of different ML techniques.
+Compared to previous work, we extend performance prediction to complex Spark applications, showing the limitation of using  black-box features, and we consider complex workflows with arbitrary combinations of  tasks, whose performance can be accurately predicted thanks to intermediate output estimation.
+
+%The workflow scheduling problem is a well-known NP-complete problem \cite{hartmanis1982computers}. However, even if there is a quite a lot of work related  to optimal scheduling, only a limited amount of work deals with performance estimation, which, however,  cannot be easily decoupled / generalized w.r.t. to the specific scheduling algorithm used by the underlying WMS (Workflow Management System).
+%Most of the available estimation models deal with simple workflows having unit tasks or no dataflow latencies on homogeneus systems. Some works focus on prividing lower and upper bounds for the makespan \cite{al1990lower, jain1994lower, hu1994improved}. A level based approach partitions the DAG in levels and computes the makespan of each level, by combining / dividing the execution time of each task in a level. The makespan of all levels are summed up to produce an estimate of the overall workflow makespan.\\
 
 
 
 \section{CONCLUSIONS}
-%Robustness of some methods w.r.t. others
-TODO.
+\label{section:conclusions}
+In this paper, we presented a hybrid three-phase modular solution for predicting the performance of complex data-driven workflows which can be mapped to Apache Spark applications. The workflow performance is predicted by combining individual task execution time predictions. Compared to previous works in this area, we targeted dynamic workflows, with arbitrary tasks composition, introduced intermediate-profile estimation, essential for the proposed approach, and considered a real-word complex system as a benchmark. In the experimental evaluation we compared the accuracy of different ML methods using different feature sets, which depend on how much knowledge on the application is available. Results show that, even for complex systems, performance can be predicted with good accuracy, which improves when the semantics of tasks is known, i.e. when using gray-box features. Moreover, the produced models keep a low prediction error even for \textit{unseen} input data size, amount of cluster resources and workflow dimensions.
+
+%The modular approach proposed in this paper, which takes advantage of intermediate result estimation, is a suitable solution for task execution time prediction, independently on the Spark
 
 
 \section*{ACKNOWLEDGMENT}
-This work was supported by the AWS Cloud Credits for Research program and by the Data-Driven Genomic Computing (GeCo) project, funded by the European Research Center (ERC) (Advanced ERC Grant 693174).
+This work was supported by the AWS Machine Learning Research Award (MLRA) and by the Data-Driven Genomic Computing (GeCo) project, funded by the European Research Center (ERC) (Advanced ERC Grant 693174).
+
+%\newpage
+%\balance
 \bibliography{b}
 \bibliographystyle{IEEEtran} 
 

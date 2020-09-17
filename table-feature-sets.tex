@@ -17,14 +17,13 @@
      &Execution Environment (BBE)  &   \\
      \hline
     \multirow{3}{*}{Gray-box} & Input Data (GBI) & GBI $\cup$ GBT $\cup$ GBT \\ 
-    &Task Parameters (GBT) &  Composite Features (GBC) \\
+    &Task Arguments (GBT) &  Composite Features (GBC) \\
      &Execution Environment (GBE)  &   \\
     \hline
 \end{tabular}
 }
 
-\vspace{0.2cm}
-
+\iffalse
 \centering
 \caption{Example of features in the four categories}
 \label{tab:feature-sets-instance}
@@ -39,11 +38,10 @@
      &BBE = memory, cores  &   \\
      \hline
     \multirow{3}{*}{Gray-box} & GBI = BBI + interval-length & GBI $\cup$ GBT $\cup$ GBT \\ 
-    &GBT  min-distance & GBC = BBC + input-size/num-tasks \\
+    &GBT = distance & GBC = BBC + input-size/num-tasks \\
      &GBE = BBE + num-tasks  &   \\
     \hline
 \end{tabular}
 }
-
-
+\fi
 \end{table}

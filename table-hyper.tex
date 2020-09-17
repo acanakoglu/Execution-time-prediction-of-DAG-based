@@ -1,7 +1,7 @@
 \begin{table}[t]
 \centering
-\caption{Hyper-parameters}\label{tab:hyper-parameters}
-
+\caption{Most used hyper-parameters values}\label{tab:hyper-parameters}
+\iffalse
 \begin{tabular}{|@{}c@{}|}
 \hline
     \begin{tabular}{c | c}
@@ -22,6 +22,7 @@
     \\ \hline
     
 \end{tabular}
+\fi 
 
 \medskip
 \centering
@@ -60,22 +61,17 @@
 
 \begin{tabular}{|@{}c@{}|}
 \hline
-    \begin{tabular}{c | c | c}
-        \multicolumn{3}{c}{ 
-        \textbf{Decision Tree (DT) \& Random Forest (RF)}
-        } 
-    \end{tabular}   
-    
-     \\ \hline
-     
-    \begin{tabular}{c|c|c}
-        \textbf{Hyper-parameter} & \textbf{DT} & \textbf{RF}  \\ \hline
-        Max Depth &  5 & 8 \\
-        Max Features & auto & auto \\
-        Min samples to split & 4 & 2 \\
-        Min samples per leaf & 1 & 2 \\
-        Criterion & MSE & MAE \\
-        \# Estimators & NA & 300
+
+    \begin{tabular}{c|c|c|c}
+        \textbf{Hyper-parameter} & \textbf{DT} & \textbf{RF} & \textbf{LR}  \\ \hline
+        Max Depth &  5 & 8 & - \\
+        Max Features & auto & auto & - \\
+        Min samples to split & 4 & 2 & - \\
+        Min samples per leaf & 1 & 2 & - \\
+        Criterion & MSE & MAE & - \\
+        \# Estimators & NA & 300 & - \\
+         Penalty $\alpha$ & - & - & 0.01\\
+        Fit-intercept & - & - & True
     \end{tabular}
 
     \\ \hline
