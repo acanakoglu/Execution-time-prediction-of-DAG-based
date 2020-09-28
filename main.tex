@@ -34,6 +34,7 @@
 \usepackage{subfig}
 \usepackage{makecell}
 \usepackage{balance}
+\let\labelindent\relax
 \usepackage{enumitem}
 
 \setlist{leftmargin=2.6mm}
@@ -225,7 +226,7 @@ We call \textit{entry task} (\textit{exit task}) a task with no incoming (outgoi
 \end{figure}
 
 \noindent 
-For our experimental evaluation, we chose a cloud-based system implementing a SQL-like language for interval data called ScQL \cite{ScQL}. A ScQL derivation is the GenoMetric Query Language (GMQL) \cite{gmql}, in which interval data is used to represent DNA regions.
+For our experimental evaluation, we chose a real-world cloud system that maps complex workflows to Spark applications.  This system implements a SQL-like language for interval data called ScQL \cite{ScQL,gmql}.
 
 Like for other query languages relying on relational algebra, a ScQL query can be easily mapped to a workflow, in which each task represents a query operator.
 A simplified version of a ScQL query is the following:
@@ -341,12 +342,8 @@ For each category, we defined a set of candidate features on which we applied Se
 In the previous works, Venkararaman et al. \cite{ernest} (Ernest's authors)  and Maros et al.\cite{ARDAGNA2019} have applied ML to estimate the execution of simple Spark applications. While Ernest is based on linear regression, with coefficients estimation based on non-negative least squares (NNLS), in Maros et al. authors took into account more complex ML techniques such as Decision Tree and Random Forest.\\
 %This is a variant of the least squares algorithm with the added restriction that coefficients must be non-negative. This restriction ensures that each term provides a non-negative contribution to the overall execution time, preventing estimation of negative execution times.
 %In \cite{ARDAGNA2019}, four classic ML techniques have been compared, including L1-regularized linear regression (LASSO), neural networks, decision trees, and random forest. \\
-In Section \ref{section:evaluation} we compare the performance of three suitable ML techniques:
-\begin{itemize}
-    \item Linear regression (LR), which produces models which can be easily interpreted, but hardly captures complex interactions between features.
-    \item Decision Trees (DT) and Random Forest (RF), having the ability to capture non-linear relationships, still allowing a good interpretability of the model.
+In Section \ref{section:evaluation} we compare the performance of three suitable ML techniques: (i) Linear regression (LR), which produces models that can be easily interpreted, but hardly captures complex interactions between features, (ii) Decision Trees (DT) and (iii) Random Forest (RF), having the ability to capture non-linear relationships, still allowing a good interpretability of the model.
     %\item Neural Networks (NN) can capture non-trivial interactions among the input features albeit less interpretable.
-\end{itemize}
 
 Given a target task type, for which we want to predict the execution time, the training set provided to the chosen machine learning technique is made of several executions of that task. 
 As proven in the experimental section, depending on the feature set and on the model technique, it might not be necessary to run on big inputs and extremely powerful environments. Even running small executions on medium-size clusters can still produce prediction models with good prediction error on larger inputs and clusters.
@@ -498,11 +495,11 @@ Training sets were built running more than 4500 executions, collecting all the i
 %We report the validation error measured with 5-Fold cross validation. 
 
 \input{table-hyper}
-\textit{a-MLLibrary}, an open source  library\footnote{\url{https://github.com/eubr-atmosphere/a-MLLibrary}} built on top of scikit-learn 0.19.1\footnote{https://scikit-learn.org}, was used to test different values for the hyper-parameters characterizing each learning methods along the lines of the work in \cite{ARDAGNA2019}.
+\textit{a-MLLibrary}, an open source  library\footnote{https://github.com/eubr-atmosphere/a-MLLibrary} built on top of scikit-learn 0.19.1\footnote{https://scikit-learn.org}, was used to test different values for the hyper-parameters characterizing each learning methods along the lines of the work in \cite{ARDAGNA2019}.
 Several combinations of values for the hyper-parameters were tested, and the best combination, corresponding to the lowest MAPE obtained with 5-fold cross-validation, was selected.
 %\textbf{XXX You did also feature selection right?  mention here SFS I guess XXX}
 
-The most frequently used hyper-parameters are reported in Table \ref{tab:hyper-parameters}. 
+The most frequently used hyper-parameters are reported in tables  \ref{tab:hyper-parameters} and \ref{tab:hyper-parameters-lr}. 
 Some parameters, e.g. the alpha penalty and the maximum three depth for Random Forest and Decision Tree help to prevent overfitting. Minimum Samples to Split/per Leaf represent, respectively, the minimum number of samples required to split a node and the minimum number of samples required to be a leaf. More details on the hyper-parameters are provided in the scikit-learn documentation.
 \color{black}
 For each feature set category, we first defined a set of candidate features and then applied SFS to exclude non-relevant features.\color{black}
@@ -529,7 +526,7 @@ Similarly applies to the feature called \textit{binned-total-size}, which defini
     \item RF is able to give good predictions even with black-box basic features. Therefore,  even without having detailed knowledge on the application and on the environment, and without "helping" the model by defining composite (i.e. non-linear) features, it is still possible to get an acceptable error. 
     \item LR performs well only when all the complex  features are in place (gray-box), including the user-provided non-linear features (composite). 
     \item Basic gray-box features do not significantly reduce the prediction error unless they are properly combined into composite features. 
-    \item The higher complexity of the ScQL-Join operation w.r.t the ScQL-Map is reflected in the higher prediction error.
+    \item The higher complexity of the ScQL-Join operation w.r.t. the ScQL-Map is reflected in the higher prediction error.
     %\item Single machine executions, using local master option, are much less predictable than executions performed on a well configured AWS cluster using Yarn.
     \color{black}
     %Todo: our single machine (cineca) showed strange behaviours, we will re-rerun on an EC2 machine. 
@@ -546,13 +543,13 @@ While the output number of files can be analytically determined, the output tota
 \label{subsec:results-workflow}
 \begin{figure}
   \centering
-  \includegraphics[width=0.4\textwidth]{sources/wexec.png}
-  \caption{Workflow execution time prediction distributions for BB-FULL and GB-FULL}
+  \includegraphics[width=0.37\textwidth]{sources/wexec.png}
+  \caption{Workflow execution time prediction error distribution for BB-FULL and GB-FULL}
   \label{fig:workex-boxolot}
 \end{figure}
 In order to measure the workflow execution time prediction error we automatically generated 168 workflows  with different topologies including ScQL-Map and ScQL-Join, together with other mandatory entry/exit tasks which, for simplicity, are not discussed in this paper.  \color{black}Each ScQL workflow was mapped to a Spark Application. On average, each generated Spark application contained 23 jobs, 117 stages and more than 16K tasks per critical stage. \color{black}
 %\textbf{XXX Add some more details: in how many Spark applications they map? How long were the workflow runnings? How may Spark stages were run? How many tasks within Spark stage? You need to state this also given your assumptions above XXX}
-Note that those workflows have higher complexity w.r.t to the workflows used to build the training sets, mostly containing only the task for which the ML model was going to be build.
+Note that those workflows have higher complexity w.r.t. to the workflows used to build the training sets, mostly containing only the task for which the ML model was going to be build.
 In other words, here we demonstrate the ability of our modular approach to predict the execution time of workflows of unseen complexity, although minimal workflows were used for training the ML models.
 
 As described in Section \ref{section:performance_prediction}, we first estimated the input profiles for all the tasks in the DAG and then predicted each task execution time using ML models that we previously built.
@@ -600,7 +597,7 @@ We compared the workflow execution time prediction error (MAPE) for BB-FULL, i.e
     \includegraphics[width = 0.33\textwidth]{sources/ScQL-JOIN - RF-cores.png}
 } 
 \end{tabular}
-\caption{Validation error (MAPE) increase w.r.t the scaling of the input data size and the number of cores.}
+\caption{Validation error (MAPE) variation w.r.t. the scaling of the input data size and the number of cores.}
 \label{fig:scalability}
 \end{figure*}
 
@@ -631,9 +628,9 @@ Moreover, we did not find any modular workflow performance prediction solutions 
 %We divide the related work in two areas i) performance prediction for Cloud-based Spark applications; ii) workflow performance prediction.  
 
 Performance prediction for cloud-based applications has been tackled in several ways. 
-Some studies apply traditional techniques, such as analytical models \cite{nelson1988approximate, mak, ardagna1, liang2000performance} and simulation \cite{bertoli2009jmt}. These techniques usually require detailed knowledge of the system, which is available only at runtime, and make  simplifying assumptions that  produce models unable to capture the complexity of cloud-based big data applications, losing in accuracy. More recently, there have been studies exploiting machine learning (ML) models for performance prediction of large systems \cite{ernest, MUSTAFA20183767, pan2017hemingway, alipourfard2017cherrypick, ARDAGNA2019}.
+Some studies apply traditional techniques, such as analytical models \cite{nelson1988approximate, mak, ardagna1, liang2000performance} and simulation \cite{bertoli2009jmt}. These techniques usually require detailed knowledge of the system, which is available only at runtime, and make  simplifying assumptions that  produce models unable to capture the complexity of cloud-based big data applications, losing in accuracy. Some studies, e.g. \cite{monotasks}, propose a change in the Spark architecture that makes the job completion time estimation easier. More recently, there have been studies exploiting machine learning (ML) models for performance prediction of large systems \cite{ernest, MUSTAFA20183767, pan2017hemingway, alipourfard2017cherrypick, ARDAGNA2019}.
 Most of these works use a \textit{black-box} approach, in which historical data is used to predict future execution time, without knowledge of the system internals. Some works, instead, try to apply \textit{gray-box} approaches, taking into account some system detail \cite{ARDAGNA2019, shon2008scientific}. 
-\textit{Ernest} \cite{ernest}, using simple features (functions of the input size and of the number of cores) and non-negative least squares (NNLS) regression, is considered the state-of-the-art in using ML. In \cite{ARDAGNA2019}, several ML models and several approaches (\textit{black-box} vs. \textit{gray-box}) are compared, showing better accuracy w.r.t \textit{Ernest}.
+\textit{Ernest} \cite{ernest}, using simple features (functions of the input size and of the number of cores) and non-negative least squares (NNLS) regression, is considered the state-of-the-art in using ML. In \cite{ARDAGNA2019}, several ML models and several approaches (\textit{black-box} vs. \textit{gray-box}) are compared, showing better accuracy w.r.t. \textit{Ernest}.
 
 In the area concerning workflow performance prediction, most of the works focus on the individual task execution time prediction \cite{pham2017predicting, da2015online, hilman2018task}, highlighting the important role that this prediction plays in the context of optimal workflow scheduling \cite{kousalya2017workflow}. In those papers,  machine learning techniques are applied to predict the execution time of tasks contained in different real-word static workflows, i.e. workflows with a fixed structure,  executed on the cloud. feature sets mostly accounts for environment parameters and only the workflow input data size, not the individual input to each task, is used to describe the input data.
 %In \cite{pham2017predicting}, machine learning techniques are applied to predict the execution time of tasks contained in different real-word static workflows, i.e. workflows with a fixed structure,  executed on the cloud. Their feature set mostly accounts for environment parameters and only the workflow input data size, not the individual input to each task, is used to describe the input data. Similarly, in  \cite{pham2017predicting} and \cite{da2015online}, tasks runtimes, together with other parameters, are predicted for some static scientific workﬂows. Again, only the workflow input data size is used to build prediction models. These last works introduce an online incremental learning approach which improves estimates as more information becomes available. 
